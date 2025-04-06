@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "poetry install"
+version = "git clone git@github.com:yamato-creator/pj-metal.git"
+description = ""
+authors = ["kazuhiro-yy <kazu.iso.one@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+      'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f8fafc;
+    /* Add padding for iOS devices with notches */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  /* Optimize for touch interactions on mobile */
+  @media (max-width: 640px) {
+    button, a, [role="button"] {
+      min-height: 44px; /* Apple's recommended minimum touch target size */
+      min-width: 44px;
+    }
+  }
+}
+
+@layer components {
+  .dashboard-component {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .chart-container {
+    animation: slideIn 0.6s ease-out;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Navigation styles */
+  @media (min-width: 768px) {
+    nav.bg-blue-600 {
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+
+    nav a.rounded-lg {
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    nav a.rounded-lg:hover {
+      transform: translateY(-2px);
+    }
+
+    nav a.rounded-lg.bg-blue-700::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 25%;
+      width: 50%;
+      height: 3px;
+      background-color: white;
+      border-radius: 2px;
+    }
+  }
+
+  /* Responsive container for all components */
+  .responsive-container {
+    @apply w-full px-4 py-3;
+    @apply sm:px-6;
+    @apply lg:px-8;
+  }
+
+  /* Make tables responsive */
+  .responsive-table {
+    @apply w-full overflow-x-auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+  }
+
+  /* Responsive grid layout */
+  .responsive-grid {
+    @apply grid grid-cols-1 gap-4;
+    @apply sm:grid-cols-2;
+    @apply lg:grid-cols-3;
+  }
+
+  /* Responsive card styling */
+  .responsive-card {
+    @apply w-full rounded-lg shadow p-4;
+    @apply sm:p-6;
+  }
+
+  /* Responsive text sizing */
+  .responsive-heading {
+    @apply text-xl font-bold;
+    @apply sm:text-2xl;
+    @apply lg:text-3xl;
+  }
+
+  .responsive-subheading {
+    @apply text-lg font-semibold;
+    @apply sm:text-xl;
+  }
+
+  .responsive-text {
+    @apply text-sm;
+    @apply sm:text-base;
+  }
+}
+
+/* Media query for very small devices */
+@media (max-width: 360px) {
+  .extra-small-screen {
+    font-size: 0.875rem;
+  }
+
+  .responsive-heading {
+    font-size: 1.25rem !important;
+  }
+
+  .responsive-card {
+    padding: 0.75rem !important;
+  }
+
+  /* Reduce spacing on very small screens */
+  .responsive-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+}
+
+/* Portrait orientation adjustments */
+@media (max-width: 640px) and (orientation: portrait) {
+  .chart-container {
+    height: auto !important;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 850px) and (orientation: landscape) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .responsive-card {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
