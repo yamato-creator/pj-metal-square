@@ -17,7 +17,7 @@ app = FastAPI()
 
 # 環境変数からCORSの許可オリジンを取得（カンマ区切りの文字列を想定）
 # デフォルトはローカル開発用
-origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000,https://nippongoldmarket.com,https://www.nippongoldmarket.com,https://api.nippongoldmarket.com").split(",")
+origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000,https://preciousmetaljapan.com,https://www.preciousmetaljapan.com,https://api.preciousmetaljapan.com").split(",")
 logger.info(f"CORS origins: {origins}")
 
 # CORSミドルウェアの設定
