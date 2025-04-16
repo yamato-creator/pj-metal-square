@@ -7,7 +7,7 @@ class EmailSender:
     """メール送信を担当するユーティリティクラス"""
     
     def __init__(self):
-        self.email_function_url = "https://asia-northeast1-perfect-atrium-444314-p1.cloudfunctions.net/send_email_function"
+        self.email_function_url = "https://asia-northeast1-spatial-skein-456018-g1.cloudfunctions.net/send_email_http_square"
         self.headers = {"Content-Type": "application/json"}
 
     async def send_email(self, to: str, subject: str, body: str) -> bool:
