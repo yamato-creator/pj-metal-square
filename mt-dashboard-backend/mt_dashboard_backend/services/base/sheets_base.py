@@ -18,7 +18,7 @@ class SheetsBase:
     """
     def __init__(self):
         # 環境変数からスプレッドシートIDを取得、なければデフォルト値を使用
-        self.SPREADSHEET_ID = os.environ.get("SPREADSHEET_ID", "1IPbiCuKKKwVvFqlobJGaiONISkl_iNwF6gkslOM6R58")
+        self.SPREADSHEET_ID = os.environ.get("SPREADSHEET_ID", "1WoBLYqZojno8_DVGvkeeCmloJAXJWMXVQ9wcgcLDxLM")
         self.SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         self.service = self._get_sheets_service()
 
