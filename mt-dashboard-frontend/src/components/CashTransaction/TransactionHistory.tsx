@@ -106,7 +106,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
       {/* ローディングオーバーレイ */}
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <CircularProgress />
+          <CircularProgress style={{ color: '#10b981' }} />
         </div>
       )}
 
@@ -145,7 +145,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
             <div className="flex justify-end">
               <button 
                 onClick={closeResultMessage} 
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
               >
                 閉じる
               </button>
@@ -166,7 +166,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 {transaction.transaction_type && (
                   <div className={`font-bold ${
                     transaction.transaction_type === '売却' ? 'text-red-600' : 
-                    transaction.transaction_type === '預入' ? 'text-blue-600' : 
+                    transaction.transaction_type === '預入' ? 'text-emerald-600' : 
                     'text-green-600'
                   }`}>
                     {transaction.transaction_type}

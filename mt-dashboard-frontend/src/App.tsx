@@ -74,7 +74,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">読み込み中...</div>;
+    return <div className="flex justify-center items-center h-screen text-emerald-600">読み込み中...</div>;
   }
 
   if (!isAuthenticated) {
@@ -83,16 +83,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   const menuItems = [
     { path: '/dashboard', emoji: '🏠', label: 'トップ' },
+    { path: '/withdraw-transaction', emoji: '💎', label: '現物返却' },
     { path: '/deposit-transaction', emoji: '📥', label: '預入' },
     { path: '/cash-transaction', emoji: '💰', label: '現金決済' },
-    { path: '/withdraw-transaction', emoji: '💎', label: '現物返却' },
     { path: '/transaction-history', emoji: '📋', label: '決済履歴' },
     { path: '/account-settings', emoji: '⚙️', label: 'アカウント設定' },
   ];
 
   return (
     <div className="flex flex-col min-h-screen">
-      <nav className="bg-blue-600 text-white py-2 px-4 shadow-lg">
+      <nav className="bg-emerald-600 text-white py-2 px-4 shadow-lg">
         <div className="container mx-auto flex items-center justify-between">
           {/* Mobile menu button */}
           {isMobile && (
@@ -117,7 +117,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                   />
                 </svg>
               </button>
-              <span className="ml-2 font-semibold">Nippon Gold Market</span>
+              <span className="ml-2 font-semibold">Precious Metal Japan</span>
             </div>
           )}
           
@@ -125,13 +125,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           {!isMobile && (
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
-                <span className="text-xl font-semibold mr-8">Nippon Gold Market</span>
+                <span className="text-xl font-semibold mr-8">Precious Metal Japan</span>
                 <div className="flex items-center space-x-4 overflow-x-auto hide-scrollbar">
                   {menuItems.map((item) => (
                     <Link 
                       key={item.path}
                       to={item.path} 
-                      className={`flex items-center px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap text-base font-medium ${location.pathname === item.path ? 'bg-blue-700' : ''}`}
+                      className={`flex items-center px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap text-base font-medium ${location.pathname === item.path ? 'bg-emerald-700' : ''}`}
                     >
                       <span className="mr-2 text-lg">{item.emoji}</span>
                       <span>{item.label}</span>
@@ -151,10 +151,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           onClick={closeMobileMenu}
         >
           <div 
-            className={`fixed top-0 left-0 w-64 h-full bg-blue-600 transform transition-transform duration-300 ease-in-out shadow-xl ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            className={`fixed top-0 left-0 w-64 h-full bg-emerald-600 transform transition-transform duration-300 ease-in-out shadow-xl ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-blue-500">
+            <div className="p-4 border-b border-emerald-500">
               <div className="flex justify-between items-center">
                 <span className="text-white font-semibold">メニュー</span>
                 <button 
@@ -184,7 +184,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                 <Link 
                   key={item.path}
                   to={item.path} 
-                  className={`flex items-center px-4 py-3 hover:bg-blue-700 transition-colors ${location.pathname === item.path ? 'bg-blue-700' : ''}`}
+                  className={`flex items-center px-4 py-3 hover:bg-emerald-700 transition-colors ${location.pathname === item.path ? 'bg-emerald-700' : ''}`}
                   onClick={closeMobileMenu}
                 >
                   <span className="mr-3 text-xl">{item.emoji}</span>

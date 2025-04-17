@@ -55,7 +55,7 @@ class EmailSender:
 登録日時: {created_at}
 
 以下のURLからログインしてください：
-http://localhost:3000/login
+https://www.preciousmetaljapan.com/
 
 ご利用ありがとうございます。"""
         

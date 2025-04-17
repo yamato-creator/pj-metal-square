@@ -254,7 +254,9 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
       <div className="responsive-container">
         <h1 className="responsive-heading mb-4">現物返却</h1>
         <div className="responsive-card bg-white flex justify-center items-center" style={{ minHeight: "200px" }}>
-          <CircularProgress />
+          <div className="flex justify-center items-center h-64">
+            <CircularProgress style={{ color: '#10b981' }} />
+          </div>
         </div>
       </div>
     );
@@ -285,7 +287,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
             <label className="inline-flex items-center">
               <input
                 type="radio"
-                className="form-radio h-5 w-5 text-blue-600"
+                className="form-radio h-5 w-5 text-emerald-600"
                 name="withdrawMode"
                 value="specific"
                 checked={withdrawMode === 'specific'}
@@ -296,7 +298,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
             <label className="inline-flex items-center">
               <input
                 type="radio"
-                className="form-radio h-5 w-5 text-blue-600"
+                className="form-radio h-5 w-5 text-emerald-600"
                 name="withdrawMode"
                 value="full"
                 checked={withdrawMode === 'full'}
@@ -361,7 +363,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
         <div className="flex justify-end mt-4">
           <button
             onClick={handleProceed}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
           >
             返却手続きへ
           </button>
@@ -381,7 +383,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
 
       {isProcessing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <CircularProgress />
+          <CircularProgress style={{ color: '#10b981' }} />
         </div>
       )}
     </div>

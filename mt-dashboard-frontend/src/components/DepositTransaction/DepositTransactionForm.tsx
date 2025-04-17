@@ -213,7 +213,7 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
             </button>
             <button
               onClick={handleProceed}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
             >
               預入手続きへ
             </button>
@@ -232,7 +232,7 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
 
       {isProcessing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <CircularProgress />
+          <CircularProgress style={{ color: '#10b981' }} />
         </div>
       )}
     </div>
