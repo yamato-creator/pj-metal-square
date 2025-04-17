@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import ConfirmationModal from './ConfirmationModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Metal {
   name: string;
@@ -32,6 +33,7 @@ interface CashTransactionFormProps {
 
 const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSale, onCalculate, onSaleComplete }) => {
   const navigate = useNavigate();
+  const { getAuthHeaders } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [saleAmounts, setSaleAmounts] = useState<{ [key: string]: number }>(() => {
@@ -225,41 +227,47 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
     setIsConfirmationOpen(false);
     
     if (result) {
-      // 成功した場合は完了画面へ遷移
-      fetch(`${process.env.REACT_APP_API_URL}/api/sales`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': (() => {
-            // localStorage から認証情報を取得
-            const auth = localStorage.getItem('auth');
-            return auth ? JSON.parse(auth).user.api_key : '';
-          })()
-        },
-        body: JSON.stringify({
-          user_id: (() => {
-            // localStorage から認証情報を取得
-            const auth = localStorage.getItem('auth');
-            return auth ? JSON.parse(auth).user.user_id : '';
-          })(),
-          metals: metals
-            .filter(metal => saleAmounts[metal.name] > 0)
-            .map(metal => ({
-              metal_type: (() => {
-                switch (metal.name) {
-                  case 'Au': return '金';
-                  case 'Pt': return 'プラチナ';
-                  case 'Pd': return 'パラジウム';
-                  case 'Ag': return '銀';
-                  default: return '';
-                }
-              })(),
-              amount: saleAmounts[metal.name],
-              unit_price: metal.unitPrice,
-            }))
-        })
-      }).then(response => response.json())
-      .then(data => {
+      try {
+        // 成功した場合は売却データをAPIに送信
+        const metalTypeMap: { [key: string]: string } = {
+          'Au': '金',
+          'Pt': 'プラチナ',
+          'Pd': 'パラジウム',
+          'Ag': '銀'
+        };
+
+        // 売却アイテムを準備
+        const saleMetals = metals
+          .filter(metal => saleAmounts[metal.name] > 0)
+          .map(metal => ({
+            metal_type: metalTypeMap[metal.name],
+            amount: saleAmounts[metal.name],
+            unit_price: metal.unitPrice,
+            total: Math.floor(saleAmounts[metal.name] * metal.unitPrice)
+          }));
+
+        // APIエンドポイントと必要なパラメータの修正
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/transactions/sale`, {
+          method: 'POST',
+          headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            metals: saleMetals,
+            total_amount: result.subtotal,
+            tax: result.tax,
+            total: result.total
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`APIエラー: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('売却API成功:', data);
+        
         // 売却完了後の処理（資産情報の更新など）
         onSaleComplete(data);
         
@@ -270,14 +278,12 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
             message: '売却が正常に処理されました。',
           } 
         });
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('売却処理エラー:', error);
-        alert('売却処理に失敗しました。');
-      })
-      .finally(() => {
+        alert('売却処理に失敗しました。' + (error instanceof Error ? error.message : ''));
+      } finally {
         setIsProcessing(false);
-      });
+      }
     } else {
       alert('売却処理に失敗しました。');
       setIsProcessing(false);

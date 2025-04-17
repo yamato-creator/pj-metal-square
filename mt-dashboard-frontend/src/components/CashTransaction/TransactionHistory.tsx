@@ -166,7 +166,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 {transaction.transaction_type && (
                   <div className={`font-bold ${
                     transaction.transaction_type === '売却' ? 'text-red-600' : 
-                    transaction.transaction_type === '預入' ? 'text-emerald-600' : 
+                    transaction.transaction_type === '預入' ? 'text-blue-600' : 
                     'text-green-600'
                   }`}>
                     {transaction.transaction_type}
