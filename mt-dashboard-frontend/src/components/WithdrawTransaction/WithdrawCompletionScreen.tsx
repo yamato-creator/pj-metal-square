@@ -6,9 +6,9 @@ const WithdrawCompletionScreen: React.FC = () => {
   const { message } = location.state as { message: string };
 
   return (
-    <div className="p-4">
-      <div className="bg-white p-6 rounded shadow-md max-w-md mx-auto text-center">
-        <h1 className="text-2xl font-bold mb-4">現物返却完了</h1>
+    <div className="responsive-container p-4">
+      <div className="responsive-card bg-white p-6 rounded shadow-md mx-auto">
+        <h1 className="responsive-heading font-bold mb-4">現物返却完了</h1>
         <div className="mb-6">
           <p className="text-green-600 text-lg mb-2">{message}</p>
         </div>

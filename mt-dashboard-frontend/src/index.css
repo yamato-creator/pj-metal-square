@@ -80,9 +80,18 @@
 
   /* Responsive container for all components */
   .responsive-container {
-    @apply w-full px-4 py-3;
+    @apply w-full px-4 py-3 mx-auto;
     @apply sm:px-6;
     @apply lg:px-8;
+    max-width: 900px; /* 最大幅を900pxに縮小 */
+  }
+
+  /* グラフコンテナは幅制限なし */
+  .chart-container {
+    @apply w-full px-4 py-3 mx-auto;
+    @apply sm:px-6;
+    @apply lg:px-8;
+    /* グラフは幅制限なし */
   }
 
   /* Make tables responsive */
@@ -102,6 +111,9 @@
   .responsive-card {
     @apply w-full rounded-lg shadow p-4;
     @apply sm:p-6;
+    max-width: 900px; /* カードの最大幅も900pxに縮小 */
+    margin-left: auto;
+    margin-right: auto;
   }
 
   /* Responsive text sizing */

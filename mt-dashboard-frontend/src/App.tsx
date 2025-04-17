@@ -668,7 +668,7 @@ function MainContent() {
               <ProtectedRoute>
                 <div className="container mx-auto px-4 py-8">
                   <AssetStatus metals={metals} isLoading={isLoadingAssets} />
-                  <div className="mt-8">
+                  <div className="mt-8 chart-container">
                     <MetalPriceChart />
                   </div>
                 </div>

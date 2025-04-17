@@ -25,9 +25,9 @@ const DepositCompletionScreen: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
-      <div className="bg-white p-6 rounded shadow">
-        <h1 className="text-xl font-bold mb-4">預入完了</h1>
+    <div className="responsive-container p-4">
+      <div className="responsive-card bg-white p-6 rounded shadow">
+        <h1 className="responsive-heading font-bold mb-4">預入完了</h1>
         <p className="mb-4">{state.message}</p>
         <p className="font-bold mb-6">
           預入合計金額: {formatPrice(state.totalAmount)}円
