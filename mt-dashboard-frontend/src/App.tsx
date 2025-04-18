@@ -225,7 +225,7 @@ function MainContent() {
       if (!userId) {
         return;
       }
-      //URLを変更 
+      //URL変更 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user/${userId}/assets`, {
         headers: getAuthHeaders()
       });
