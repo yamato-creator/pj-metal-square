@@ -53,7 +53,7 @@ class TransactionService(SheetsBase):
                 user_id_value = transaction.get('user_id', '')
                 transaction_time = transaction.get('transaction_datetime', '')
                 transaction_id = transaction.get('transaction_id', '')
-                company_name = "株式会社ドット・セブンティーン"
+                company_name = "スクエア"
                 status = transaction.get('status', '申込')
                 transaction_type = transaction.get('transaction_type', '')
                 
@@ -87,7 +87,7 @@ class TransactionService(SheetsBase):
                 # このグループの最初の取引IDを使用
                 common_transaction_id = first_transaction_ids.get(group_key, transaction.get('transaction_id', ''))
                 # このグループの会社名を使用
-                company_name = "株式会社ドット・セブンティーン"
+                company_name = "スクエア"
                 # このグループのステータスを使用
                 status = transaction_statuses.get(group_key, transaction.get('status', '申込'))
                 # このグループの取引種別を使用
@@ -172,8 +172,8 @@ class TransactionService(SheetsBase):
             # 金属名を日本語に変換
             metal_type_jp = self._get_metal_name_jp(transaction_data.get('metal_type'))
 
-            # 会社名は常に「株式会社ドット・セブンティーン」に設定
-            company_name = "株式会社ドット・セブンティーン"
+            # 会社名は常に「スクエア」に設定
+            company_name = "スクエア"
 
             values = [[
                 transaction_id,                                    # 取引ID

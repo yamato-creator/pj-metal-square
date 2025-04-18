@@ -34,7 +34,7 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
       <div className="responsive-container dashboard-component">
         <h1 className="responsive-heading mb-4">資産状況</h1>
         <div className="responsive-card bg-white flex justify-center items-center" style={{ minHeight: "200px" }}>
-          <CircularProgress />
+          <CircularProgress style={{ color: '#10b981' }} />
         </div>
       </div>
     );
@@ -45,10 +45,10 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
       <h1 className="responsive-heading mb-4">資産状況</h1>
       <div className="responsive-card bg-white">
         <div className="mb-4">
-          <div className="flex justify-between">
-            <span className="responsive-text">資産合計</span>
-            <span className="responsive-text text-blue-600">
-              {totalAssets === 0 ? '' : `${(Math.round(totalAssets * 10) / 10).toLocaleString()}円`}
+          <div className="flex justify-end">
+            <span className="responsive-text mr-2">資産合計:</span>
+            <span className="responsive-text text-emerald-600 font-bold">
+              {totalAssets === 0 ? '0円' : `${(Math.round(totalAssets * 10) / 10).toLocaleString()}円`}
             </span>
           </div>
         </div>

@@ -102,11 +102,11 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
   };
 
   return (
-    <div className="p-4 relative">
+    <div className="responsive-container p-4 relative">
       {/* ローディングオーバーレイ */}
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <CircularProgress />
+          <CircularProgress style={{ color: '#10b981' }} />
         </div>
       )}
 
@@ -145,7 +145,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
             <div className="flex justify-end">
               <button 
                 onClick={closeResultMessage} 
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
               >
                 閉じる
               </button>
@@ -154,10 +154,10 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
         </div>
       )}
 
-      <h1 className="text-xl mb-4">決済履歴</h1>
+      <h1 className="responsive-heading mb-4">決済履歴</h1>
       <div className="space-y-4">
         {transactions.map((transaction) => (
-          <div key={transaction.id} className="bg-white p-4 rounded shadow">
+          <div key={transaction.id} className="responsive-card bg-white p-4 rounded shadow">
             <div className="flex justify-between items-center mb-2">
               <div>
                 <div>{transaction.date}</div>
@@ -209,7 +209,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
               {/* 取引種別が預入の場合とそれ以外で表示を分ける */}
               {transaction.transaction_type === '預入' ? (
                 <div>
-                  <table className="w-full max-w-md mx-auto">
+                  <table className="w-full max-w-lg mx-auto">
                     <thead>
                       <tr>
                         <th className="text-left w-2/3">金属名</th>
@@ -228,7 +228,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 </div>
               ) : transaction.transaction_type === '現物返却' ? (
                 <div>
-                  <table className="w-full max-w-md mx-auto">
+                  <table className="w-full max-w-lg mx-auto">
                     <thead>
                       <tr>
                         <th className="text-left w-2/3">金属名</th>
@@ -247,12 +247,12 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 </div>
               ) : (
                 <div>
-                  <div className="mb-2">
+                  <div className="mb-2 text-left max-w-2xl">
                     <div>小計 {transaction.subtotal.toLocaleString()}円</div>
                     <div>適用税率 10% 消費税 {transaction.tax.toLocaleString()}円</div>
                   </div>
                   
-                  <table className="w-full">
+                  <table className="w-full max-w-2xl mx-auto">
                     <thead>
                       <tr>
                         <th className="text-left">金属名</th>

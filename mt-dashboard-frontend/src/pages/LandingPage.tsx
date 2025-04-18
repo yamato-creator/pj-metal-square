@@ -32,7 +32,7 @@ const LandingPage = () => {
             gutterBottom 
             sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}
           >
-            Nippon Gold Market
+            Precious Metal Japan
           </Typography>
           
           <Typography 

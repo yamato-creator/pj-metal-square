@@ -202,7 +202,7 @@ async def create_sale_transaction(
                 "unit_price": str(metal.unit_price),
                 "total_amount": str(metal.total),
                 "transaction_id": transaction_id,
-                "company_name": "株式会社ドット・セブンティーン"
+                "company_name": "スクエア"
             }
             
             if not transaction_service.create_transaction(transaction_values):
@@ -298,7 +298,7 @@ async def create_deposit_transaction(
                 "unit_price": str(metal.unit_price),
                 "total_amount": str(metal.total),
                 "transaction_id": transaction_id,
-                "company_name": "株式会社ドット・セブンティーン"
+                "company_name": "スクエア"
             }
             
             if not transaction_service.create_transaction(transaction_values):
@@ -428,7 +428,7 @@ async def create_withdraw_transaction(
                 "unit_price": "0", # 単価は記録しない
                 "total_amount": "0", # 金額は記録しない
                 "transaction_id": transaction_id,
-                "company_name": "株式会社ドット・セブンティーン"
+                "company_name": "スクエア"
             }
             
             if not transaction_service.create_transaction(transaction_values):

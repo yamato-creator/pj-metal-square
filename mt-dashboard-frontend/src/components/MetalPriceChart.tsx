@@ -303,7 +303,7 @@ export const MetalPriceChart = () => {
   };
 
   return (
-    <div className="responsive-container dashboard-component chart-container">
+    <div className="chart-container dashboard-component">
       <h1 className="responsive-heading mb-4">金属価格チャート</h1>
       <Tabs 
         value={period} 
@@ -326,7 +326,7 @@ export const MetalPriceChart = () => {
       </Tabs>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={6}>
-          <Box className="responsive-card" sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper' }}>
+          <Box sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1, p: 2 }}>
             <LineChart 
               labels={labels}
               menuName="Au (金)"
@@ -337,7 +337,7 @@ export const MetalPriceChart = () => {
           </Box>
         </Grid>
         <Grid item xs={12} sm={12} md={6}>
-          <Box className="responsive-card" sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper' }}>
+          <Box sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1, p: 2 }}>
             <LineChart 
               labels={labels}
               menuName="Pd (パラジウム)"
@@ -348,7 +348,7 @@ export const MetalPriceChart = () => {
           </Box>
         </Grid>
         <Grid item xs={12} sm={12} md={6}>
-          <Box className="responsive-card" sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper' }}>
+          <Box sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1, p: 2 }}>
             <LineChart 
               labels={labels}
               menuName="Ag (銀)"
@@ -359,7 +359,7 @@ export const MetalPriceChart = () => {
           </Box>
         </Grid>
         <Grid item xs={12} sm={12} md={6}>
-          <Box className="responsive-card" sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper' }}>
+          <Box sx={{ height: isMobile ? '250px' : '300px', bgcolor: 'background.paper', borderRadius: 1, boxShadow: 1, p: 2 }}>
             <LineChart 
               labels={labels}
               menuName="Pt (プラチナ)"
