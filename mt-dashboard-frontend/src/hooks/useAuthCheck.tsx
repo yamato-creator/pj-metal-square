@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export const useAuthCheck = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
@@ -31,5 +31,5 @@ export const useAuthCheck = () => {
     return () => clearInterval(interval);
   }, [isAuthenticated, navigate, location.pathname]);
   
-  return { isAuthenticated, loading };
+  return { isAuthenticated, loading, user };
 }; 
