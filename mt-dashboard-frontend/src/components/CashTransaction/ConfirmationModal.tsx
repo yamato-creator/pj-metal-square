@@ -55,7 +55,7 @@ const ConfirmationModal: React.FC<Props> = ({
               </th>
               {!hideAmount && (
                 <>
-                  <th className="text-right">単価 (円/g)</th>
+                  <th className="text-right">買取価格<span className="text-xl font-bold">(税抜)</span> (円/g)</th>
                   <th className="text-right">金額 (円)</th>
                 </>
               )}
@@ -65,10 +65,12 @@ const ConfirmationModal: React.FC<Props> = ({
             {saleItems.map((item) => (
               <tr key={item.metalName} className="border-t">
                 <td className="py-2">{item.metalName} {item.nameJp}</td>
-                <td className="text-right py-2">{item.amount.toFixed(1)}</td>
+                <td className="text-right py-2">
+                  {isWithdraw ? item.amount.toFixed(2) : item.amount.toFixed(1)}
+                </td>
                 {!hideAmount && (
                   <>
-                    <td className="text-right py-2">{item.unitPrice.toFixed(1).toLocaleString()}</td>
+                    <td className="text-right py-2">{Math.floor(item.unitPrice).toLocaleString()}</td>
                     <td className="text-right py-2">{formatPrice(item.total)}円</td>
                   </>
                 )}

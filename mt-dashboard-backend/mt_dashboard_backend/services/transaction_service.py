@@ -3,6 +3,8 @@ import logging
 import pandas as pd
 from datetime import datetime, timedelta
 from .base.sheets_base import SheetsBase
+import re
+import math
 
 class TransactionService(SheetsBase):
     """
@@ -134,7 +136,7 @@ class TransactionService(SheetsBase):
             # 税金と合計を計算
             result = []
             for transaction in grouped_by_user_time.values():
-                transaction['tax'] = round(transaction['subtotal'] * 0.1)
+                transaction['tax'] = math.floor(transaction['subtotal'] * 0.1)
                 transaction['total'] = transaction['subtotal'] + transaction['tax']
                 result.append(transaction)
             

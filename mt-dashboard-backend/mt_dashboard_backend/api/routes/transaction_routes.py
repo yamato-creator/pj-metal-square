@@ -7,6 +7,7 @@ from ...services.transaction_service import TransactionService
 from ...services.asset_service import AssetService
 from ..utils.auth import verify_api_key
 from ..utils.email import EmailSender
+import math
 
 # ルーターの設定
 router = APIRouter()
@@ -227,7 +228,7 @@ async def create_sale_transaction(
         try:
             # 売却内容の文字列を作成（全金属分）
             sales_details = "\n".join([
-                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.1f}g ({float(metal.unit_price):.1f}円/g)"
+                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.1f}g ({int(float(metal.unit_price))}円/g)"
                 for metal in transaction_data.metals
             ])
 
@@ -235,8 +236,8 @@ async def create_sale_transaction(
                 user_email=current_user["email"],
                 sales_details=sales_details,
                 total_amount=int(transaction_data.total_amount),
-                tax=int(transaction_data.tax),
-                total=int(transaction_data.total)
+                tax=int(math.floor(transaction_data.tax)),
+                total=int(transaction_data.total_amount + math.floor(transaction_data.tax))
             )
 
         except Exception as e:
@@ -343,7 +344,7 @@ async def create_deposit_transaction(
         try:
             # 預入内容の文字列を作成（全金属分）
             deposit_details = "\n".join([
-                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.1f}g ({float(metal.unit_price):.1f}円/g)"
+                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.1f}g ({int(float(metal.unit_price))}円/g)"
                 for metal in transaction_data.metals
             ])
 
@@ -453,7 +454,7 @@ async def create_withdraw_transaction(
         try:
             # 返却内容の文字列を作成（全金属分）- 金額情報は含めない
             withdraw_details = "\n".join([
-                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.1f}g"
+                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.2f}g"
                 for metal in transaction_data.metals
             ])
 

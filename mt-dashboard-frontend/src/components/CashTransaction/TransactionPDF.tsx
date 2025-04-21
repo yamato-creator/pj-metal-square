@@ -162,7 +162,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
                   {item.metalName} {item.nameJp}
                 </Text>
                 <Text style={{ ...styles.amount, flex: 1 }}>
-                  {item.amount.toFixed(1)}g
+                  {item.amount.toFixed(2)}g
                 </Text>
               </View>
             ))}
@@ -173,7 +173,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
               <View style={styles.tableHeader}>
                 <Text style={styles.metalName}>金属名</Text>
                 <Text style={styles.amount}>売却量</Text>
-                <Text style={styles.unitPrice}>売却単価</Text>
+                <Text style={styles.unitPrice}>買取価格(税抜)</Text>
                 <Text style={styles.total}>金額</Text>
               </View>
 
@@ -186,7 +186,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
                     {item.amount.toFixed(1)}g
                   </Text>
                   <Text style={styles.unitPrice}>
-                    {item.unitPrice.toFixed(1).toLocaleString()}円/g
+                    {Math.floor(item.unitPrice).toLocaleString()}円/g
                   </Text>
                   <Text style={styles.total}>
                     {Math.floor(item.total).toLocaleString()}円
@@ -205,7 +205,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>消費税（10%）</Text>
                 <Text style={styles.summaryValue}>
-                  {transaction.tax.toLocaleString()}円
+                  {Math.floor(transaction.tax).toLocaleString()}円
                 </Text>
               </View>
               <View style={styles.summaryRow}>

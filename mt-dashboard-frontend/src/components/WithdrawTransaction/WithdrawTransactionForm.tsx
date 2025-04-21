@@ -49,19 +49,22 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
 
   const formatAmount = (amount: number) => {
     if (amount === 0 && metals.every(m => m.amount === 0)) return '';
-    return Math.floor(amount);
+    return amount.toFixed(2);
   };
 
   // 入力値の変更を処理する関数
   const handleAmountChange = (metalName: string, value: string) => {
+    // 小数点を含む場合は整数部分のみ使用
+    const intValue = value.includes('.') ? value.split('.')[0] : value;
+    
     // 入力値をそのまま保存（バリデーションなし）
     setInputValues(prev => ({
       ...prev,
-      [metalName]: value
+      [metalName]: intValue
     }));
     
     // 空の入力は0として処理
-    if (value === '') {
+    if (intValue === '') {
       setWithdrawAmounts(prev => ({
         ...prev,
         [metalName]: 0
@@ -70,29 +73,38 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     }
 
     // 数値変換
-    const numAmount = Number(value);
+    const numAmount = Number(intValue);
     
     // 不正な値の検出（負数やNaN）
     if (numAmount < 0 || isNaN(numAmount)) {
       return;
     }
     
-    // 整数値のみ許可
-    if (!Number.isInteger(numAmount)) {
-      return;
-    }
-    
     // 保有量の確認
     const metal = filteredMetals.find(m => m.name === metalName);
-    if (metal && numAmount > metal.amount) {
-      return;
+    if (metal) {
+      let validAmount = numAmount;
+      
+      // 50の倍数に調整
+      if (validAmount % 50 !== 0) {
+        validAmount = Math.floor(validAmount / 50) * 50;
+      }
+      
+      // 保有量を超える場合は保有量以下の最大の50の倍数に設定
+      if (validAmount > metal.amount) {
+        validAmount = Math.floor(metal.amount / 50) * 50;
+        setInputValues(prev => ({
+          ...prev,
+          [metalName]: validAmount.toString()
+        }));
+      }
+      
+      // 有効な入力として設定
+      setWithdrawAmounts(prev => ({
+        ...prev,
+        [metalName]: validAmount
+      }));
     }
-
-    // 有効な入力として設定
-    setWithdrawAmounts(prev => ({
-      ...prev,
-      [metalName]: numAmount
-    }));
   };
 
   // 入力フォーカスが外れた時の処理
@@ -116,24 +128,25 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
       return;
     }
     
-    // 保有量を超える場合は保有量に設定
+    // 保有量の確認
     const metal = filteredMetals.find(m => m.name === metalName);
-    if (metal && numAmount > metal.amount) {
-      numAmount = metal.amount;
-      setInputValues(prev => ({ ...prev, [metalName]: String(numAmount) }));
+    if (metal) {
+      // 50g単位に調整
+      if (numAmount % 50 !== 0) {
+        numAmount = Math.floor(numAmount / 50) * 50;
+      }
+      
+      // 保有量を超える場合は保有量以下の最大の50の倍数に設定
+      if (numAmount > metal.amount) {
+        numAmount = Math.floor(metal.amount / 50) * 50;
+      }
+      
+      setInputValues(prev => ({ ...prev, [metalName]: numAmount.toString() }));
+      setWithdrawAmounts(prev => ({
+        ...prev,
+        [metalName]: numAmount
+      }));
     }
-    
-    // 50g単位の制約（0は許可）
-    if (numAmount !== 0 && numAmount % 50 !== 0) {
-      // 50gの倍数に切り捨て
-      numAmount = Math.floor(numAmount / 50) * 50;
-      setInputValues(prev => ({ ...prev, [metalName]: String(numAmount) }));
-    }
-    
-    setWithdrawAmounts(prev => ({
-      ...prev,
-      [metalName]: numAmount
-    }));
   };
 
   // 全量返却モードでの金額設定
@@ -142,14 +155,15 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     if (!metal) return;
 
     if (selected) {
-      // 全量返却チェック時に保有量を設定
+      // 全量返却チェック時に保有量を設定（小数点第2位までの精度を保持）
+      const amountValue = parseFloat(metal.amount.toFixed(2));
       setWithdrawAmounts(prev => ({
         ...prev,
-        [metalName]: metal.amount
+        [metalName]: amountValue
       }));
       setInputValues(prev => ({
         ...prev,
-        [metalName]: String(metal.amount)
+        [metalName]: amountValue.toFixed(2)
       }));
     } else {
       // チェック解除時に0に設定
@@ -159,7 +173,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
       }));
       setInputValues(prev => ({
         ...prev,
-        [metalName]: '0'
+        [metalName]: '0.00'
       }));
     }
   };
@@ -180,7 +194,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
       setInputValues(prev => {
         const resetValues = { ...prev };
         Object.keys(resetValues).forEach(key => {
-          resetValues[key] = '0';
+          resetValues[key] = '0.00';
         });
         return resetValues;
       });
@@ -326,14 +340,13 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
               {filteredMetals.map((metal) => (
                 <tr key={metal.name} className="border-t">
                   <td className="py-2 responsive-text">{metal.name} {metal.nameJp}</td>
-                  <td className="text-right py-2 responsive-text">{isLoading ? "" : formatAmount(metal.amount)}</td>
+                  <td className="text-right py-2 responsive-text">{isLoading ? "" : formatAmount(metal.amount) + " g"}</td>
                   {withdrawMode === 'full' ? (
                     <td className="text-center py-2">
                       <input
                         type="checkbox"
                         checked={withdrawAmounts[metal.name] > 0}
                         onChange={(e) => handleFullAmountSelection(metal.name, e.target.checked)}
-                        disabled={metal.amount < 20}
                       />
                     </td>
                   ) : (
@@ -341,6 +354,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
                       <input
                         type="number"
                         min="0"
+                        step="50"
                         max={metal.amount}
                         className="w-20 text-right border rounded p-1 responsive-text"
                         value={inputValues[metal.name]}
@@ -348,7 +362,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
                         onBlur={() => handleBlur(metal.name)}
                         onClick={(e) => e.currentTarget.select()}
                         onKeyDown={(e) => {
-                          if (e.key === '-') {
+                          if (e.key === '-' || e.key === '.' || e.key === ',') {
                             e.preventDefault();
                           }
                         }}

@@ -16,17 +16,17 @@ interface Props {
 
 const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => {
   const totalAssets = metals.reduce((sum, metal) => {
-    return sum + metal.amount * metal.unitPrice;
+    return sum + Math.floor(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice));
   }, 0);
 
   const formatPrice = (price: number) => {
     if (price === 0) return '0円';
-    return `${price.toFixed(1).toLocaleString()} 円`;
+    return `${Math.floor(price).toLocaleString()} 円`;
   };
 
   const formatAmount = (amount: number) => {
     if (amount === 0 && metals.every(m => m.amount === 0)) return '';
-    return `${Math.floor(amount)} g`;
+    return `${amount.toFixed(2)} g`;
   };
 
   if (isLoading) {
@@ -44,22 +44,13 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
     <div className="responsive-container dashboard-component">
       <h1 className="responsive-heading mb-4">資産状況</h1>
       <div className="responsive-card bg-white">
-        <div className="mb-4">
-          <div className="flex justify-end">
-            <span className="responsive-text mr-2">資産合計:</span>
-            <span className="responsive-text text-emerald-600 font-bold">
-              {totalAssets === 0 ? '0円' : `${(Math.round(totalAssets * 10) / 10).toLocaleString()}円`}
-            </span>
-          </div>
-        </div>
-
         <div className="responsive-table">
           <table className="w-full">
             <thead>
               <tr>
                 <th className="text-left responsive-text">金属名</th>
                 <th className="text-right responsive-text">保有量</th>
-                <th className="text-right responsive-text">単価</th>
+                <th className="text-right responsive-text">買取価格<span className="text-xl font-bold">(税抜)</span></th>
                 <th className="text-right responsive-text">評価額</th>
               </tr>
             </thead>
@@ -69,15 +60,21 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
                   <td className="py-2 responsive-text">{metal.name} {metal.nameJp}</td>
                   <td className="text-right py-2 responsive-text">{formatAmount(metal.amount)}</td>
                   <td className="text-right py-2 responsive-text">
-                    {metal.unitPrice === 0 ? '' : `${metal.unitPrice.toFixed(1).toLocaleString()} 円/g`}
+                    {metal.unitPrice === 0 ? '' : `${Math.floor(metal.unitPrice).toLocaleString()} 円/g`}
                   </td>
                   <td className="text-right py-2 responsive-text">
-                    {formatPrice(metal.amount * metal.unitPrice)}
+                    {formatPrice(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice))}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="mt-4 flex justify-between">
+          <span className="responsive-text font-bold">資産合計:</span>
+          <span className="responsive-text font-bold">
+            {totalAssets === 0 ? '0円(税抜)' : `${Math.floor(totalAssets).toLocaleString()}円(税抜)`}
+          </span>
         </div>
       </div>
     </div>
