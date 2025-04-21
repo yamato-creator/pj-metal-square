@@ -118,7 +118,7 @@ async def cancel_transaction(
                 )
             
             # 取引詳細を記録（メール用）
-            transaction_details_list.append(f"{metal_type}: {amount:.1f}g")
+            transaction_details_list.append(f"{metal_type}: {amount:.2f}g")
         
         # 6. キャンセル完了メールを送信
         try:
@@ -228,7 +228,7 @@ async def create_sale_transaction(
         try:
             # 売却内容の文字列を作成（全金属分）
             sales_details = "\n".join([
-                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.1f}g ({int(float(metal.unit_price))}円/g)"
+                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.2f}g ({int(float(metal.unit_price))}円/g)"
                 for metal in transaction_data.metals
             ])
 
@@ -344,7 +344,7 @@ async def create_deposit_transaction(
         try:
             # 預入内容の文字列を作成（全金属分）
             deposit_details = "\n".join([
-                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.1f}g ({int(float(metal.unit_price))}円/g)"
+                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.2f}g ({int(float(metal.unit_price))}円/g)"
                 for metal in transaction_data.metals
             ])
 

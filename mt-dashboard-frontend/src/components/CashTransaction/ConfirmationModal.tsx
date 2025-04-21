@@ -66,7 +66,7 @@ const ConfirmationModal: React.FC<Props> = ({
               <tr key={item.metalName} className="border-t">
                 <td className="py-2">{item.metalName} {item.nameJp}</td>
                 <td className="text-right py-2">
-                  {isWithdraw ? item.amount.toFixed(2) : item.amount.toFixed(1)}
+                  {item.amount.toFixed(2)}
                 </td>
                 {!hideAmount && (
                   <>

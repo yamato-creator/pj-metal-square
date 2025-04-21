@@ -15,6 +15,15 @@ interface Props {
 }
 
 const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => {
+  // 現在の日付を取得して表示形式をフォーマット (例: 2025年4月20日現在)
+  const formatCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    return `${year}年${month}月${day}日現在`;
+  };
+
   const totalAssets = metals.reduce((sum, metal) => {
     return sum + Math.floor(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice));
   }, 0);
@@ -32,7 +41,10 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
   if (isLoading) {
     return (
       <div className="responsive-container dashboard-component">
-        <h1 className="responsive-heading mb-4">資産状況</h1>
+        <div className="flex items-center mb-4">
+          <h1 className="responsive-heading">資産状況</h1>
+          <span className="ml-4 text-gray-600 text-2xl">{formatCurrentDate()}</span>
+        </div>
         <div className="responsive-card bg-white flex justify-center items-center" style={{ minHeight: "200px" }}>
           <CircularProgress style={{ color: '#10b981' }} />
         </div>
@@ -42,7 +54,10 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
 
   return (
     <div className="responsive-container dashboard-component">
-      <h1 className="responsive-heading mb-4">資産状況</h1>
+      <div className="flex items-center mb-4">
+        <h1 className="responsive-heading">資産状況</h1>
+        <span className="ml-4 text-gray-600 text-2xl">{formatCurrentDate()}</span>
+      </div>
       <div className="responsive-card bg-white">
         <div className="responsive-table">
           <table className="w-full">
@@ -51,7 +66,7 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
                 <th className="text-left responsive-text">金属名</th>
                 <th className="text-right responsive-text">保有量</th>
                 <th className="text-right responsive-text">買取価格<span className="text-xl font-bold">(税抜)</span></th>
-                <th className="text-right responsive-text">評価額</th>
+                <th className="text-right responsive-text">評価額<span className="text-xl font-bold">(税抜)</span></th>
               </tr>
             </thead>
             <tbody>

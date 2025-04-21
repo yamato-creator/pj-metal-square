@@ -220,7 +220,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                       {transaction.items.map((item, index) => (
                         <tr key={index} className="border-t">
                           <td className="py-2">{item.metalName} {item.nameJp}</td>
-                          <td className="text-right py-2">{item.amount.toFixed(1)}g</td>
+                          <td className="text-right py-2">{item.amount.toFixed(2)}g</td>
                         </tr>
                       ))}
                     </tbody>
@@ -265,7 +265,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                       {transaction.items.map((item, index) => (
                         <tr key={index} className="border-t">
                           <td className="py-2">{item.metalName} {item.nameJp}</td>
-                          <td className="text-right py-2">{item.amount.toFixed(1)}g</td>
+                          <td className="text-right py-2">{item.amount.toFixed(2)}g</td>
                           <td className="text-right py-2">{Math.floor(item.unitPrice).toLocaleString()}円/g</td>
                           <td className="text-right py-2">{Math.floor(item.total).toLocaleString()}円</td>
                         </tr>

@@ -84,12 +84,12 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       return;
     }
     
-    // 整数値のみ許可（小数点以下は切り捨て）
-    const intAmount = Math.floor(numAmount);
+    // 小数点第2位まで許可
+    const roundedAmount = Math.round(numAmount * 100) / 100;
     
     // 保有量を超える場合はリアルタイムで制限
     const metal = metals.find(m => m.name === metalName);
-    if (metal && intAmount > metal.amount) {
+    if (metal && roundedAmount > metal.amount) {
       setInputValues(prev => ({ ...prev, [metalName]: String(metal.amount) }));
       setSaleAmounts(prev => ({
         ...prev,
@@ -100,7 +100,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
     
     setSaleAmounts(prev => ({
       ...prev,
-      [metalName]: intAmount
+      [metalName]: roundedAmount
     }));
   };
 
@@ -125,8 +125,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       return;
     }
     
-    // 整数値に変換
-    numAmount = Math.floor(numAmount);
+    // 小数点第2位まで許可
+    numAmount = Math.round(numAmount * 100) / 100;
     
     // 保有量の確認
     const metal = metals.find(m => m.name === metalName);
@@ -275,7 +275,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         // 完了画面へ遷移
         navigate('/completion', { 
           state: { 
-            totalAmount: result.subtotal,
+            totalAmount: totalAmount,
             message: '売却が正常に処理されました。',
           } 
         });
@@ -314,7 +314,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                 <th className="text-left responsive-text">金属名</th>
                 <th className="text-right responsive-text">保有量 (g)</th>
                 <th className="text-right responsive-text">買取価格<span className="text-xl font-bold">(税抜)</span> (円/g)</th>
-                <th className="text-right responsive-text">評価額 (円)</th>
+                <th className="text-right responsive-text">評価額<span className="text-xl font-bold">(税抜)</span> (円)</th>
                 <th className="text-right responsive-text">売却量 (g)</th>
               </tr>
             </thead>
@@ -334,6 +334,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                       type="number"
                       min="0"
                       max={metal.amount}
+                      step="0.01"
                       className="w-20 text-right border rounded p-1 responsive-text"
                       value={inputValues[metal.name]}
                       onChange={(e) => handleAmountChange(metal.name, e.target.value)}

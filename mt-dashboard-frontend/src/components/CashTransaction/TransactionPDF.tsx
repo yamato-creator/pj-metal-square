@@ -144,7 +144,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
                   {item.metalName} {item.nameJp}
                 </Text>
                 <Text style={{ ...styles.amount, flex: 1 }}>
-                  {item.amount.toFixed(1)}g
+                  {item.amount.toFixed(2)}g
                 </Text>
               </View>
             ))}
@@ -183,7 +183,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
                     {item.metalName} {item.nameJp}
                   </Text>
                   <Text style={styles.amount}>
-                    {item.amount.toFixed(1)}g
+                    {item.amount.toFixed(2)}g
                   </Text>
                   <Text style={styles.unitPrice}>
                     {Math.floor(item.unitPrice).toLocaleString()}円/g

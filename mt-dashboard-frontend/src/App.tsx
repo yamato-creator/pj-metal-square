@@ -84,7 +84,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const menuItems = [
     { path: '/dashboard', emoji: '🏠', label: 'トップ' },
     { path: '/withdraw-transaction', emoji: '💎', label: '現物返却' },
-    { path: '/deposit-transaction', emoji: '📥', label: '預入' },
     { path: '/cash-transaction', emoji: '💰', label: '現金決済' },
     { path: '/transaction-history', emoji: '📋', label: '決済履歴' },
     { path: '/account-settings', emoji: '⚙️', label: 'アカウント設定' },
@@ -684,12 +683,7 @@ function MainContent() {
           <Route
             path="/deposit-transaction"
             element={
-              <ProtectedRoute>
-                <DepositTransactionForm 
-                  metals={metals} 
-                  onDeposit={handleDeposit}
-                />
-              </ProtectedRoute>
+              <Navigate to="/dashboard" replace />
             }
           />
           <Route
@@ -727,9 +721,7 @@ function MainContent() {
           <Route
             path="/deposit-completion"
             element={
-              <ProtectedRoute>
-                <DepositCompletionPage />
-              </ProtectedRoute>
+              <Navigate to="/dashboard" replace />
             }
           />
           <Route
