@@ -59,7 +59,7 @@ interface Transaction {
 }
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuthCheck();
+  const { isAuthenticated, loading, user } = useAuthCheck();
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -84,7 +84,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const menuItems = [
     { path: '/dashboard', emoji: '🏠', label: 'トップ' },
     { path: '/withdraw-transaction', emoji: '💎', label: '現物返却' },
-    { path: '/deposit-transaction', emoji: '📥', label: '預入' },
     { path: '/cash-transaction', emoji: '💰', label: '現金決済' },
     { path: '/transaction-history', emoji: '📋', label: '決済履歴' },
     { path: '/account-settings', emoji: '⚙️', label: 'アカウント設定' },
@@ -92,14 +91,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <nav className="bg-emerald-600 text-white py-2 px-4 shadow-lg">
+      <nav className="bg-emerald-600 text-white py-2 px-2 shadow-lg">
         <div className="container mx-auto flex items-center justify-between">
           {/* Mobile menu button */}
           {isMobile && (
             <div className="flex items-center">
               <button
                 onClick={toggleMobileMenu}
-                className="text-white p-2 focus:outline-none"
+                className="focus:outline-none"
                 aria-label="メニュー"
               >
                 <svg 
@@ -117,26 +116,29 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                   />
                 </svg>
               </button>
-              <span className="ml-2 font-semibold">Precious Metal Japan</span>
+              <img src="/logo.png" alt="会社ロゴ" className="h-auto w-36 ml-1 mr-2 object-contain" />
+              <span className="ml-1 font-semibold">Precious Metal Japan</span>
             </div>
           )}
           
           {/* Desktop menu */}
           {!isMobile && (
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
-                <span className="text-xl font-semibold mr-8">Precious Metal Japan</span>
-                <div className="flex items-center space-x-4 overflow-x-auto hide-scrollbar">
+            <div className="flex items-center justify-between w-full pl-0">
+              <div className="flex items-center flex-grow">
+                <img src="/logo.png" alt="会社ロゴ" className="h-auto w-48 mr-3 object-contain pl-0" />
+                <span className="text-xl font-semibold mr-4">Precious Metal Japan</span>
+                <div className="flex items-center space-x-1 overflow-x-auto hide-scrollbar">
                   {menuItems.map((item) => (
                     <Link 
                       key={item.path}
                       to={item.path} 
-                      className={`flex items-center px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap text-base font-medium ${location.pathname === item.path ? 'bg-emerald-700' : ''}`}
+                      className={`flex items-center px-2 py-2 rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap text-base font-medium ${location.pathname === item.path ? 'bg-emerald-700' : ''}`}
                     >
-                      <span className="mr-2 text-lg">{item.emoji}</span>
+                      <span className="mr-1 text-lg">{item.emoji}</span>
                       <span>{item.label}</span>
                     </Link>
                   ))}
+                  <span className="text-white px-3 py-2 bg-emerald-800 rounded-md ml-2">{user?.user_name || ''}</span>
                 </div>
               </div>
             </div>
@@ -191,6 +193,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                   <span>{item.label}</span>
                 </Link>
               ))}
+              <div className="mt-4 border-t border-emerald-500 pt-4 px-4">
+                <span className="text-white font-medium">{user?.user_name || ''}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -678,12 +683,7 @@ function MainContent() {
           <Route
             path="/deposit-transaction"
             element={
-              <ProtectedRoute>
-                <DepositTransactionForm 
-                  metals={metals} 
-                  onDeposit={handleDeposit}
-                />
-              </ProtectedRoute>
+              <Navigate to="/dashboard" replace />
             }
           />
           <Route
@@ -721,9 +721,7 @@ function MainContent() {
           <Route
             path="/deposit-completion"
             element={
-              <ProtectedRoute>
-                <DepositCompletionPage />
-              </ProtectedRoute>
+              <Navigate to="/dashboard" replace />
             }
           />
           <Route

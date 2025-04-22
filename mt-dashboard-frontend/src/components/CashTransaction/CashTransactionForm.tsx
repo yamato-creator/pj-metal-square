@@ -55,12 +55,12 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
 
   const formatPrice = (price: number) => {
     if (price === 0) return '0円';
-    return `${price.toFixed(1).toLocaleString()}円`;
+    return `${Math.floor(price).toLocaleString()}円`;
   };
 
   const formatAmount = (amount: number) => {
-    if (amount === 0 && metals.every(m => m.amount === 0)) return '';
-    return Math.floor(amount);
+    if (amount === 0) return '0 g';
+    return `${amount.toFixed(2)} g`;
   };
 
   const handleAmountChange = (metalName: string, value: string) => {
@@ -84,12 +84,12 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       return;
     }
     
-    // 整数値のみ許可（小数点以下は切り捨て）
-    const intAmount = Math.floor(numAmount);
+    // 小数点第2位まで許可
+    const roundedAmount = Math.round(numAmount * 100) / 100;
     
     // 保有量を超える場合はリアルタイムで制限
     const metal = metals.find(m => m.name === metalName);
-    if (metal && intAmount > metal.amount) {
+    if (metal && roundedAmount > metal.amount) {
       setInputValues(prev => ({ ...prev, [metalName]: String(metal.amount) }));
       setSaleAmounts(prev => ({
         ...prev,
@@ -100,7 +100,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
     
     setSaleAmounts(prev => ({
       ...prev,
-      [metalName]: intAmount
+      [metalName]: roundedAmount
     }));
   };
 
@@ -125,8 +125,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       return;
     }
     
-    // 整数値に変換
-    numAmount = Math.floor(numAmount);
+    // 小数点第2位まで許可
+    numAmount = Math.round(numAmount * 100) / 100;
     
     // 保有量の確認
     const metal = metals.find(m => m.name === metalName);
@@ -164,9 +164,10 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       alert('売却量が保有量を超えている金属があります。最大値に調整しました。');
     }
     
-    const total = Math.floor(metals.reduce((sum, metal) => {
-      return sum + (adjustedAmounts[metal.name] || 0) * metal.unitPrice;
-    }, 0));
+    const total = metals.reduce((sum, metal) => {
+      // 各金属の評価額を計算し、整数に切り捨てた後で合計する
+      return sum + Math.floor((adjustedAmounts[metal.name] || 0) * Math.floor(metal.unitPrice));
+    }, 0);
     setTotalAmount(total);
     onCalculate(adjustedAmounts);
   };
@@ -242,8 +243,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
           .map(metal => ({
             metal_type: metalTypeMap[metal.name],
             amount: saleAmounts[metal.name],
-            unit_price: metal.unitPrice,
-            total: Math.floor(saleAmounts[metal.name] * metal.unitPrice)
+            unit_price: Math.floor(metal.unitPrice),
+            total: Math.floor(saleAmounts[metal.name] * Math.floor(metal.unitPrice))
           }));
 
         // APIエンドポイントと必要なパラメータの修正
@@ -274,7 +275,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         // 完了画面へ遷移
         navigate('/completion', { 
           state: { 
-            totalAmount: result.total,
+            totalAmount: totalAmount,
             message: '売却が正常に処理されました。',
           } 
         });
@@ -296,8 +297,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       metalName: metal.name,
       nameJp: metal.nameJp,
       amount: saleAmounts[metal.name] || 0,
-      unitPrice: metal.unitPrice,
-      total: Math.floor((saleAmounts[metal.name] || 0) * metal.unitPrice)
+      unitPrice: Math.floor(metal.unitPrice),
+      total: Math.floor((saleAmounts[metal.name] || 0) * Math.floor(metal.unitPrice))
     }));
 
   return (
@@ -312,8 +313,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
               <tr>
                 <th className="text-left responsive-text">金属名</th>
                 <th className="text-right responsive-text">保有量 (g)</th>
-                <th className="text-right responsive-text">単価 (円/g)</th>
-                <th className="text-right responsive-text">評価額 (円)</th>
+                <th className="text-right responsive-text">買取価格<span className="text-xl font-bold">(税抜)</span> (円/g)</th>
+                <th className="text-right responsive-text">評価額<span className="text-xl font-bold">(税抜)</span> (円)</th>
                 <th className="text-right responsive-text">売却量 (g)</th>
               </tr>
             </thead>
@@ -323,16 +324,17 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                   <td className="py-2 responsive-text">{metal.name} {metal.nameJp}</td>
                   <td className="text-right py-2 responsive-text">{formatAmount(metal.amount)}</td>
                   <td className="text-right py-2 responsive-text">
-                    {metal.unitPrice === 0 ? '' : `${metal.unitPrice.toFixed(1).toLocaleString()}`}
+                    {metal.unitPrice === 0 ? '' : `${Math.floor(metal.unitPrice).toLocaleString()}`}
                   </td>
                   <td className="text-right py-2 responsive-text">
-                    {formatPrice(metal.amount * metal.unitPrice)}
+                    {formatPrice(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice))}
                   </td>
                   <td className="text-right py-2">
                     <input
                       type="number"
                       min="0"
                       max={metal.amount}
+                      step="0.01"
                       className="w-20 text-right border rounded p-1 responsive-text"
                       value={inputValues[metal.name]}
                       onChange={(e) => handleAmountChange(metal.name, e.target.value)}
@@ -353,7 +355,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
           <div className="text-right responsive-text mb-2 sm:mb-0">
             <span className="font-bold">売却合計金額: </span>
-            <span>{totalAmount === 0 ? '0' : totalAmount.toLocaleString()}円</span>
+            <span>{totalAmount === 0 ? '0' : Math.floor(totalAmount).toLocaleString()}円</span>
           </div>
           <div className="space-x-2">
             <button

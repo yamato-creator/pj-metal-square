@@ -220,7 +220,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                       {transaction.items.map((item, index) => (
                         <tr key={index} className="border-t">
                           <td className="py-2">{item.metalName} {item.nameJp}</td>
-                          <td className="text-right py-2">{item.amount.toFixed(1)}g</td>
+                          <td className="text-right py-2">{item.amount.toFixed(2)}g</td>
                         </tr>
                       ))}
                     </tbody>
@@ -239,7 +239,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                       {transaction.items.map((item, index) => (
                         <tr key={index} className="border-t">
                           <td className="py-2">{item.metalName} {item.nameJp}</td>
-                          <td className="text-right py-2">{item.amount.toFixed(1)}g</td>
+                          <td className="text-right py-2">{item.amount.toFixed(2)}g</td>
                         </tr>
                       ))}
                     </tbody>
@@ -249,7 +249,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 <div>
                   <div className="mb-2 text-left max-w-2xl">
                     <div>小計 {transaction.subtotal.toLocaleString()}円</div>
-                    <div>適用税率 10% 消費税 {transaction.tax.toLocaleString()}円</div>
+                    <div>適用税率 10% 消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
                   </div>
                   
                   <table className="w-full max-w-2xl mx-auto">
@@ -257,7 +257,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                       <tr>
                         <th className="text-left">金属名</th>
                         <th className="text-right">売却量</th>
-                        <th className="text-right">売却単価</th>
+                        <th className="text-right">買取価格<span className="text-xl font-bold">(税抜)</span></th>
                         <th className="text-right">金額</th>
                       </tr>
                     </thead>
@@ -265,8 +265,8 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                       {transaction.items.map((item, index) => (
                         <tr key={index} className="border-t">
                           <td className="py-2">{item.metalName} {item.nameJp}</td>
-                          <td className="text-right py-2">{item.amount.toFixed(1)}g</td>
-                          <td className="text-right py-2">{item.unitPrice.toFixed(1).toLocaleString()}円/g</td>
+                          <td className="text-right py-2">{item.amount.toFixed(2)}g</td>
+                          <td className="text-right py-2">{Math.floor(item.unitPrice).toLocaleString()}円/g</td>
                           <td className="text-right py-2">{Math.floor(item.total).toLocaleString()}円</td>
                         </tr>
                       ))}

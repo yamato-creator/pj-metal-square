@@ -370,8 +370,11 @@ export const MetalPriceChart = () => {
           </Box>
         </Grid>
       </Grid>
+      <p className="text-center text-gray-500 font-semibold text-base mt-4">
+        ※このチャートは当社買取価格を表すものではありません
+      </p>
       {isMobile && (
-        <p className="text-center text-gray-500 text-sm mt-4">
+        <p className="text-center text-gray-500 text-sm mt-2">
           グラフをタップすると日付ごとの価格が表示されます
         </p>
       )}

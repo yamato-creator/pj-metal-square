@@ -42,12 +42,12 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
 
   const formatPrice = (price: number) => {
     if (price === 0) return '0円';
-    return `${price.toFixed(1).toLocaleString()}円`;
+    return `${Math.floor(price).toLocaleString()} 円`;
   };
 
   const formatAmount = (amount: number) => {
-    if (amount === 0) return '0';
-    return Math.floor(amount);
+    if (amount === 0) return '0 g';
+    return `${amount.toFixed(2)} g`;
   };
 
   const handleAmountChange = (metalName: string, value: string) => {
@@ -105,9 +105,9 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
   };
 
   const calculateTotal = () => {
-    const total = Math.floor(metals.reduce((sum, metal) => {
-      return sum + (depositAmounts[metal.name] || 0) * metal.unitPrice;
-    }, 0));
+    const total = metals.reduce((sum, metal) => {
+      return sum + Math.floor((depositAmounts[metal.name] || 0) * Math.floor(metal.unitPrice));
+    }, 0);
     setTotalAmount(total);
   };
 
@@ -147,8 +147,8 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
       metalName: metal.name,
       nameJp: metal.nameJp,
       amount: depositAmounts[metal.name] || 0,
-      unitPrice: metal.unitPrice,
-      total: Math.floor((depositAmounts[metal.name] || 0) * metal.unitPrice)
+      unitPrice: Math.floor(metal.unitPrice),
+      total: Math.floor((depositAmounts[metal.name] || 0) * Math.floor(metal.unitPrice))
     }));
 
   return (
@@ -162,7 +162,7 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
               <tr>
                 <th className="text-left responsive-text">金属名</th>
                 <th className="text-right responsive-text">保有量 (g)</th>
-                <th className="text-right responsive-text">単価 (円/g)</th>
+                <th className="text-right responsive-text">買取価格<span className="text-xl font-bold">(税抜)</span> (円/g)</th>
                 <th className="text-right responsive-text">評価額 (円)</th>
                 <th className="text-right responsive-text">預入量 (g)</th>
               </tr>
@@ -173,10 +173,10 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
                   <td className="py-2 responsive-text">{metal.name} {metal.nameJp}</td>
                   <td className="text-right py-2 responsive-text">{formatAmount(metal.amount)}</td>
                   <td className="text-right py-2 responsive-text">
-                    {metal.unitPrice === 0 ? '' : `${metal.unitPrice.toFixed(1).toLocaleString()}`}
+                    {metal.unitPrice === 0 ? '' : `${Math.floor(metal.unitPrice).toLocaleString()}`}
                   </td>
                   <td className="text-right py-2 responsive-text">
-                    {formatPrice(metal.amount * metal.unitPrice)}
+                    {formatPrice(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice))}
                   </td>
                   <td className="text-right py-2">
                     <input
@@ -202,7 +202,7 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
         <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
           <div className="text-right responsive-text mb-2 sm:mb-0">
             <span className="font-bold">預入合計金額: </span>
-            <span>{totalAmount === 0 ? '0' : totalAmount.toLocaleString()}円</span>
+            <span>{totalAmount === 0 ? '0' : Math.floor(totalAmount).toLocaleString()}円</span>
           </div>
           <div className="space-x-2">
             <button
