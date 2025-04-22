@@ -232,6 +232,7 @@ async def create_sale_transaction(
                 for metal in transaction_data.metals
             ])
 
+            # 売却合計金額を小計と一致させる（切り捨て処理済みの値を使用）
             await email_sender.send_sale_completion_email(
                 user_email=current_user["email"],
                 sales_details=sales_details,

@@ -369,8 +369,8 @@ function MainContent() {
         metalName: metal.name,
         nameJp: metal.nameJp,
         amount: saleAmounts[metal.name],
-        unitPrice: metal.unitPrice,
-        total: Math.floor(saleAmounts[metal.name] * metal.unitPrice)
+        unitPrice: Math.floor(metal.unitPrice),
+        total: Math.floor(saleAmounts[metal.name] * Math.floor(metal.unitPrice))
       }));
 
     const subtotal = Math.floor(saleItems.reduce((sum, item) => sum + item.total, 0));
@@ -441,10 +441,10 @@ function MainContent() {
   };
 
   const handleCalculate = (amounts: { [key: string]: number }) => {
-    const subtotal = Object.entries(amounts).reduce(
-      (sum, [key, amount]) => sum + amount * (metals.find(m => m.name === key)?.unitPrice || 0),
+    const subtotal = Math.floor(Object.entries(amounts).reduce(
+      (sum, [key, amount]) => sum + amount * Math.floor(metals.find(m => m.name === key)?.unitPrice || 0),
       0
-    );
+    ));
     const tax = Math.floor(subtotal * 0.1);
     return { subtotal, tax, total: subtotal + tax };
   };
