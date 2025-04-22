@@ -138,7 +138,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                       <span>{item.label}</span>
                     </Link>
                   ))}
-                  <span className="text-white px-3 py-2 bg-emerald-800 rounded-md ml-2">{user?.user_name || ''}</span>
+                  <span className="text-white px-3 py-2 ml-2">{user?.user_name || ''}</span>
                 </div>
               </div>
             </div>
