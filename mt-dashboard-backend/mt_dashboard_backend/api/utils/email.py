@@ -55,7 +55,7 @@ class EmailSender:
 登録日時: {created_at}
 
 以下のURLからログインしてください：
-https://www.preciousmetaljapan.com/
+https://www.preciousmetalmine.com/
 
 ご利用ありがとうございます。"""
         

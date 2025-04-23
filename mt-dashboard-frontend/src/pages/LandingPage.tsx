@@ -32,7 +32,7 @@ const LandingPage = () => {
             gutterBottom 
             sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}
           >
-            Precious Metal Japan
+            Precious Metal Mine
           </Typography>
           
           <Typography 

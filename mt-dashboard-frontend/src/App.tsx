@@ -117,7 +117,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                 </svg>
               </button>
               <img src="/logo.png" alt="会社ロゴ" className="h-auto w-36 ml-1 mr-2 object-contain" />
-              <span className="ml-1 font-semibold">Precious Metal Japan</span>
+              <span className="ml-1 font-semibold">Precious Metal Mine</span>
             </div>
           )}
           
@@ -126,7 +126,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center justify-between w-full pl-0">
               <div className="flex items-center flex-grow">
                 <img src="/logo.png" alt="会社ロゴ" className="h-auto w-48 mr-3 object-contain pl-0" />
-                <span className="text-xl font-semibold mr-4">Precious Metal Japan</span>
+                <span className="text-xl font-semibold mr-4">Precious Metal Mine</span>
                 <div className="flex items-center space-x-1 overflow-x-auto hide-scrollbar">
                   {menuItems.map((item) => (
                     <Link 
