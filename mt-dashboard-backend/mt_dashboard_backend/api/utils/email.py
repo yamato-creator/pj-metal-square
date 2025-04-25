@@ -9,6 +9,7 @@ class EmailSender:
     def __init__(self):
         self.email_function_url = "https://asia-northeast1-spatial-skein-456018-g1.cloudfunctions.net/send_email_http_square"
         self.headers = {"Content-Type": "application/json"}
+        self.admin_email = "precious.metal.mine@gmail.com"
 
     async def send_email(self, to: str, subject: str, body: str) -> bool:
         """
@@ -29,7 +30,8 @@ class EmailSender:
                     json={
                         "to": to,
                         "subject": subject,
-                        "body": body
+                        "body": body,
+                        "from_email": self.admin_email
                     },
                     headers=self.headers
                 )
@@ -73,7 +75,7 @@ https://www.preciousmetalmine.com/
 メールアドレス: {user_email}
 登録日時: {created_at}"""
             
-            await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
 
@@ -99,7 +101,7 @@ https://www.preciousmetalmine.com/
 メールアドレス: {user_email}
 変更日時: {change_datetime}"""
             
-            admin_success = await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            admin_success = await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
 
@@ -135,7 +137,7 @@ https://www.preciousmetalmine.com/
 変更後: {new_email}
 変更日時: {change_datetime}"""
             
-            await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
 
@@ -163,7 +165,7 @@ https://www.preciousmetalmine.com/
 メールアドレス: {user_email}
 退会処理日時: {deactivation_datetime}"""
             
-            await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
 
@@ -208,7 +210,7 @@ https://www.preciousmetalmine.com/
 
 取引日時: {sale_datetime}"""
             
-            admin_success = await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            admin_success = await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
 
@@ -250,7 +252,7 @@ https://www.preciousmetalmine.com/
 
 ユーザーメールアドレス: {user_email}"""
             
-            admin_success = await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            admin_success = await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
 
@@ -286,7 +288,7 @@ https://www.preciousmetalmine.com/
 預入内容:
 {deposit_details}"""
             
-            await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
 
@@ -322,6 +324,6 @@ https://www.preciousmetalmine.com/
 返却内容:
 {withdraw_details}"""
             
-            await self.send_email("pjmetal9@gmail.com", admin_subject, admin_body)
+            await self.send_email(self.admin_email, admin_subject, admin_body)
         
         return success
