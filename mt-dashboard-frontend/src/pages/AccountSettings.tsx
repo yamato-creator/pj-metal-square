@@ -131,25 +131,60 @@ export const AccountSettings = () => {
 
   return (
     <>
-      <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
-        <Box
-          onClick={() => setOpenDialog(true)}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            cursor: 'pointer',
-            color: 'white',
-            transition: 'background-color 0.3s',
-            '&:hover': {
-              backgroundColor: '#059669'
-            }
-          }}
-        >
-          <span>ログアウト</span>
-        </Box>
+      <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Paper sx={{ p: 4, width: '100%', maxWidth: 600 }}>
+          <Typography variant="h5" align="center" gutterBottom>
+            登録内容
+          </Typography>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+              ユーザー名
+            </Typography>
+            <Typography variant="body1" sx={{ pl: 2 }}>
+              {userInfo.username}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+              メールアドレス
+            </Typography>
+            <Typography variant="body1" sx={{ pl: 2 }}>
+              {userInfo.email}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => setOpenPasswordDialog(true)}
+            >
+              ログイン用パスワード変更
+            </Button>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={() => setOpenEmailDialog(true)}
+            >
+              通知用メールアドレス変更
+            </Button>
+          </Box>
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setOpenDialog(true)}
+            >
+              ログアウト
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setOpenDeactivateDialog(true)}
+            >
+              退会する
+            </Button>
+          </Box>
+        </Paper>
       </Box>
 
       {/* 既存のログアウトダイアログ */}
@@ -234,55 +269,6 @@ export const AccountSettings = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Paper sx={{ p: 4, width: '100%', maxWidth: 600 }}>
-          <Typography variant="h5" align="center" gutterBottom>
-            登録内容
-          </Typography>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-              ユーザー名
-            </Typography>
-            <Typography variant="body1" sx={{ pl: 2 }}>
-              {userInfo.username}
-            </Typography>
-          </Box>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-              メールアドレス
-            </Typography>
-            <Typography variant="body1" sx={{ pl: 2 }}>
-              {userInfo.email}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-            <Button 
-              variant="contained" 
-              color="primary"
-              onClick={() => setOpenPasswordDialog(true)}
-            >
-              ログイン用パスワード変更
-            </Button>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={() => setOpenEmailDialog(true)}
-            >
-              通知用メールアドレス変更
-            </Button>
-          </Box>
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => setOpenDeactivateDialog(true)}
-            >
-              退会する
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
 
       <Dialog open={openDeactivateDialog} onClose={() => setOpenDeactivateDialog(false)}>
         <DialogTitle>退会確認</DialogTitle>
