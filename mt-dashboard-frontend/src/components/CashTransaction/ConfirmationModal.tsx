@@ -55,7 +55,7 @@ const ConfirmationModal: React.FC<Props> = ({
               </th>
               {!hideAmount && (
                 <>
-                  <th className="text-right">買取価格<span className="text-xl font-bold">(税抜)</span> (円/g)</th>
+                  <th className="text-right">買取価格 (円/g)</th>
                   <th className="text-right">金額 (円)</th>
                 </>
               )}
