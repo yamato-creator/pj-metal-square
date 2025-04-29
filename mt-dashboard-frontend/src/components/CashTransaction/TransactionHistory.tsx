@@ -257,7 +257,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                       <tr>
                         <th className="text-left">金属名</th>
                         <th className="text-right">売却量</th>
-                        <th className="text-right">買取価格<span className="text-xl font-bold">(税抜)</span></th>
+                        <th className="text-right">買取価格</th>
                         <th className="text-right">金額</th>
                       </tr>
                     </thead>

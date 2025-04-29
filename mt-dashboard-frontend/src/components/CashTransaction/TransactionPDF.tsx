@@ -173,7 +173,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
               <View style={styles.tableHeader}>
                 <Text style={styles.metalName}>金属名</Text>
                 <Text style={styles.amount}>売却量</Text>
-                <Text style={styles.unitPrice}>買取価格(税抜)</Text>
+                <Text style={styles.unitPrice}>買取価格</Text>
                 <Text style={styles.total}>金額</Text>
               </View>
 
