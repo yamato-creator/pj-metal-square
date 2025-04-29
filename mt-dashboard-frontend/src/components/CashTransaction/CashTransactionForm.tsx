@@ -313,8 +313,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
               <tr>
                 <th className="text-left responsive-text">金属名</th>
                 <th className="text-right responsive-text">保有量 (g)</th>
-                <th className="text-right responsive-text">買取価格<span className="text-xl font-bold">(税抜)</span> (円/g)</th>
-                <th className="text-right responsive-text">評価額<span className="text-xl font-bold">(税抜)</span> (円)</th>
+                <th className="text-right responsive-text">買取価格 (円/g)</th>
+                <th className="text-right responsive-text">評価額 (円)</th>
                 <th className="text-right responsive-text">売却量 (g)</th>
               </tr>
             </thead>
@@ -324,7 +324,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                   <td className="py-2 responsive-text">{metal.name} {metal.nameJp}</td>
                   <td className="text-right py-2 responsive-text">{formatAmount(metal.amount)}</td>
                   <td className="text-right py-2 responsive-text">
-                    {metal.unitPrice === 0 ? '' : `${Math.floor(metal.unitPrice).toLocaleString()}`}
+                    {metal.unitPrice === 0 ? '' : `${Math.floor(metal.unitPrice).toLocaleString()}円`}
                   </td>
                   <td className="text-right py-2 responsive-text">
                     {formatPrice(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice))}
@@ -373,6 +373,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
           </div>
         </div>
       </div>
+      
+      <div className="mt-2 text-left text-gray-500 text-xl font-bold">※上記価格は消費税は含まれておりません</div>
       
       <ConfirmationModal
         isOpen={isConfirmationOpen}

@@ -41,9 +41,9 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
   if (isLoading) {
     return (
       <div className="responsive-container dashboard-component">
-        <div className="flex items-center mb-4">
+        <div className="flex flex-col mb-4">
           <h1 className="responsive-heading">資産状況</h1>
-          <span className="ml-4 text-gray-600 text-2xl">{formatCurrentDate()}</span>
+          <span className="text-gray-600 text-2xl">{formatCurrentDate()}</span>
         </div>
         <div className="responsive-card bg-white flex justify-center items-center" style={{ minHeight: "200px" }}>
           <CircularProgress style={{ color: '#10b981' }} />
@@ -54,9 +54,9 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
 
   return (
     <div className="responsive-container dashboard-component">
-      <div className="flex items-center mb-4">
+      <div className="flex flex-col mb-4">
         <h1 className="responsive-heading">資産状況</h1>
-        <span className="ml-4 text-gray-600 text-2xl">{formatCurrentDate()}</span>
+        <span className="text-gray-600 text-2xl">{formatCurrentDate()}</span>
       </div>
       <div className="responsive-card bg-white">
         <div className="responsive-table">
@@ -65,8 +65,8 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
               <tr>
                 <th className="text-left responsive-text">金属名</th>
                 <th className="text-right responsive-text">保有量</th>
-                <th className="text-right responsive-text">買取価格<span className="text-xl font-bold">(税抜)</span></th>
-                <th className="text-right responsive-text">評価額<span className="text-xl font-bold">(税抜)</span></th>
+                <th className="text-right responsive-text">買取価格</th>
+                <th className="text-right responsive-text">評価額</th>
               </tr>
             </thead>
             <tbody>
@@ -86,12 +86,13 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
           </table>
         </div>
         <div className="mt-4 flex justify-between">
-          <span className="responsive-text font-bold">資産合計:</span>
-          <span className="responsive-text font-bold">
-            {totalAssets === 0 ? '0円(税抜)' : `${Math.floor(totalAssets).toLocaleString()}円(税抜)`}
+          <span className="responsive-text font-bold text-xl">資産合計:</span>
+          <span className="responsive-text font-bold text-xl">
+            {totalAssets === 0 ? <span className="text-red-600">0円(税抜)</span> : <span className="text-red-600">{Math.floor(totalAssets).toLocaleString()}円(税抜)</span>}
           </span>
         </div>
       </div>
+      <div className="mt-2 text-left text-gray-500 text-xl font-bold">※上記価格は消費税は含まれておりません</div>
     </div>
   );
 };
