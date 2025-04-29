@@ -82,11 +82,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   const menuItems = [
-    { path: '/dashboard', emoji: '🏠', label: 'トップ' },
-    { path: '/withdraw-transaction', emoji: '💎', label: '現物返却' },
-    { path: '/cash-transaction', emoji: '💰', label: '現金決済' },
-    { path: '/transaction-history', emoji: '📋', label: '決済履歴' },
-    { path: '/account-settings', emoji: '⚙️', label: 'アカウント設定' },
+    { path: '/dashboard', emoji: <img src="/icons/home-icon.png" alt="トップ" className="w-5 h-5" />, label: 'トップ' },
+    { path: '/withdraw-transaction', emoji: <img src="/icons/gold-icon.png" alt="現物返却" className="w-5 h-5" />, label: '現物返却' },
+    { path: '/cash-transaction', emoji: <img src="/icons/yen-icon.png" alt="現金決済" className="w-5 h-5" />, label: '現金決済' },
+    { path: '/transaction-history', emoji: <img src="/icons/document-icon.png" alt="決済履歴" className="w-5 h-5" />, label: '決済履歴' },
+    { path: '/account-settings', emoji: <img src="/icons/settings-icon.png" alt="アカウント設定" className="w-5 h-5" />, label: 'アカウント設定' },
   ];
 
   return (
@@ -134,7 +134,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                       to={item.path} 
                       className={`flex items-center px-2 py-2 rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap text-base font-medium ${location.pathname === item.path ? 'bg-emerald-700' : ''}`}
                     >
-                      <span className="mr-1 text-lg">{item.emoji}</span>
+                      <span className="mr-1">{item.emoji}</span>
                       <span>{item.label}</span>
                     </Link>
                   ))}
@@ -189,7 +189,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                   className={`flex items-center px-4 py-3 hover:bg-emerald-700 transition-colors ${location.pathname === item.path ? 'bg-emerald-700' : ''}`}
                   onClick={closeMobileMenu}
                 >
-                  <span className="mr-3 text-xl">{item.emoji}</span>
+                  <span className="mr-3">{item.emoji}</span>
                   <span>{item.label}</span>
                 </Link>
               ))}
