@@ -35,6 +35,13 @@ const ConfirmationModal: React.FC<Props> = ({
     return Math.floor(price).toLocaleString();
   };
 
+  // 消費税込みの合計金額を計算
+  const calculateTaxIncludedTotal = (amount: number) => {
+    return Math.floor(amount * 1.1); // 10%消費税を追加し、小数点以下を切り捨て
+  };
+
+  const taxIncludedTotal = calculateTaxIncludedTotal(totalAmount);
+
   // 取引タイプに応じたテキストを取得
   const getTransactionTypeText = () => {
     if (isDeposit) return '預入';
@@ -82,9 +89,9 @@ const ConfirmationModal: React.FC<Props> = ({
         {!hideAmount && (
           <div className="text-right mb-4">
             <span className="font-bold">
-              {isDeposit ? '預入合計金額: ' : isWithdraw ? '返却合計金額: ' : '売却合計金額: '}
+              {isDeposit ? '預入合計金額: ' : isWithdraw ? '返却合計金額: ' : '売却合計金額(税込): '}
             </span>
-            <span>{formatPrice(totalAmount)}円</span>
+            <span>{formatPrice(isDeposit || isWithdraw ? totalAmount : taxIncludedTotal)}円</span>
           </div>
         )}
 

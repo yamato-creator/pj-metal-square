@@ -83,8 +83,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   const menuItems = [
     { path: '/dashboard', emoji: <img src="/icons/home-icon.png" alt="トップ" className="w-5 h-5" />, label: 'トップ' },
-    { path: '/withdraw-transaction', emoji: <img src="/icons/gold-icon.png" alt="現物返却" className="w-5 h-5" />, label: '現物返却' },
     { path: '/cash-transaction', emoji: <img src="/icons/yen-icon.png" alt="現金決済" className="w-5 h-5" />, label: '現金決済' },
+    { path: '/withdraw-transaction', emoji: <img src="/icons/gold-icon.png" alt="現物返却" className="w-5 h-5" />, label: '現物返却' },
     { path: '/transaction-history', emoji: <img src="/icons/document-icon.png" alt="決済履歴" className="w-5 h-5" />, label: '決済履歴' },
     { path: '/account-settings', emoji: <img src="/icons/settings-icon.png" alt="アカウント設定" className="w-5 h-5" />, label: 'アカウント設定' },
   ];

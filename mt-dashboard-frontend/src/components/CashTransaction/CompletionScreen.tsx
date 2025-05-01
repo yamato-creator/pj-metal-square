@@ -5,6 +5,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 interface LocationState {
   totalAmount: number;
   message: string;
+  isTaxIncluded?: boolean; // 税込み価格かどうかのフラグ（オプション）
+  transactionType?: string; // 取引タイプ（売却、預入、返却）
 }
 
 const CompletionScreen: React.FC = () => {
@@ -21,6 +23,23 @@ const CompletionScreen: React.FC = () => {
     return Math.floor(price).toLocaleString();
   };
 
+  // 消費税込みの合計金額を計算
+  const calculateTaxIncludedTotal = (amount: number) => {
+    return Math.floor(amount * 1.1); // 10%消費税を追加し、小数点以下を切り捨て
+  };
+
+  // すでに税込みの価格が渡されている場合はそのまま使用、そうでなければ計算する
+  const taxIncludedTotal = state.isTaxIncluded ? state.totalAmount : calculateTaxIncludedTotal(state.totalAmount);
+  
+  // 取引タイプが売却かどうかを判定（デフォルトは売却として扱う）
+  const isSale = !state.transactionType || state.transactionType === '売却';
+  
+  // 表示する金額
+  const displayAmount = isSale ? taxIncludedTotal : state.totalAmount;
+  
+  // 表示するラベル
+  const amountLabel = isSale ? '売却合計金額(税込)' : state.transactionType === '預入' ? '預入合計金額' : '返却合計金額';
+
   const handleBackToTop = () => {
     navigate('/cash-transaction');  // 現金決済画面に戻る
   };
@@ -31,7 +50,7 @@ const CompletionScreen: React.FC = () => {
         <h1 className="responsive-heading font-bold mb-4">決済完了</h1>
         <p className="mb-4">{state.message}</p>
         <p className="font-bold mb-6">
-          売却合計金額: {formatPrice(state.totalAmount)}円
+          {amountLabel}: {formatPrice(displayAmount)}円
         </p>
         <button
           onClick={handleBackToTop}
