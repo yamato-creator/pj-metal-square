@@ -53,11 +53,11 @@ async def cancel_transaction(
                 detail="取引が見つからないか、このユーザーの取引ではありません"
             )
         
-        # 2. 最初の取引の日時を使って48時間以内かチェック
-        if not transaction_service.is_within_48_hours(all_transactions[0]["transaction_datetime"]):
+        # 2. 最初の取引の日時を使って23:59:59以内かチェック
+        if not transaction_service.is_cancelable(all_transactions[0]["transaction_datetime"]):
             raise HTTPException(
                 status_code=400,
-                detail="取引から48時間以上経過しているためキャンセルできません"
+                detail="取引日を過ぎているためキャンセルできません"
             )
         
         # 3. すべての取引が既にキャンセルされていないかチェック

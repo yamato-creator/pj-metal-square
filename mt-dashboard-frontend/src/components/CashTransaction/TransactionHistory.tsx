@@ -43,6 +43,20 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
     return diffInHours <= 48;
   };
 
+  // 取引日の23:59:59までキャンセル可能かどうかを判定する関数
+  const isCancelable = (dateString: string): boolean => {
+    const transactionDate = new Date(dateString);
+    // 取引日の23:59:59を設定
+    const endOfTransactionDay = new Date(
+      transactionDate.getFullYear(),
+      transactionDate.getMonth(),
+      transactionDate.getDate(),
+      23, 59, 59
+    );
+    const now = new Date();
+    return now <= endOfTransactionDay;
+  };
+
   // 取引キャンセル確認ダイアログを表示
   const showCancelConfirmation = (transactionId: string) => {
     setCurrentTransactionId(transactionId);
@@ -115,7 +129,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h3 className="text-lg font-bold mb-4">取引キャンセルの確認</h3>
-            <p className="mb-6">この取引をキャンセルしますか？キャンセルした場合、売却した金属が返却されます。</p>
+            <p className="mb-6">この取引をキャンセルしますか？キャンセルした場合、取引した金属が返却されます。</p>
             <div className="flex justify-end space-x-3">
               <button 
                 onClick={() => setShowConfirmDialog(false)} 
@@ -189,8 +203,8 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                   className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
                   userId={user?.user_id}
                 />
-                {/* 48時間以内かつステータスが「取消」でない場合のみキャンセルボタンを表示 */}
-                {isWithin48Hours(transaction.date) && transaction.status !== "取消" && (
+                {/* 取引日の23:59:59までかつステータスが「取消」でない場合のみキャンセルボタンを表示 */}
+                {isCancelable(transaction.date) && transaction.status !== "取消" && (
                   <button 
                     onClick={() => showCancelConfirmation(transaction.id)}
                     className="bg-gray-600 text-white px-3 py-1 text-sm rounded hover:bg-gray-700"

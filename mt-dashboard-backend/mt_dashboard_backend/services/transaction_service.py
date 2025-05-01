@@ -323,6 +323,37 @@ class TransactionService(SheetsBase):
             logging.error(f"日時判定エラー: {str(e)}")
             return False
 
+    def is_cancelable(self, date_string: str) -> bool:
+        """
+        取引がキャンセル可能かどうかを判定 (取引日の23:59:59まで)
+        
+        Args:
+            date_string (str): 取引日時の文字列 (形式: '%Y/%m/%d %H:%M:%S')
+            
+        Returns:
+            bool: キャンセル可能ならTrue、それ以外はFalse
+        """
+        try:
+            # 文字列を日時オブジェクトに変換
+            transaction_date = datetime.strptime(date_string, '%Y/%m/%d %H:%M:%S')
+            
+            # 取引日の23:59:59を計算
+            end_of_day = datetime(
+                transaction_date.year,
+                transaction_date.month,
+                transaction_date.day,
+                23, 59, 59
+            )
+            
+            # 現在時刻
+            now = datetime.now()
+            
+            # 取引日の23:59:59までかどうかを判定
+            return now <= end_of_day
+        except Exception as e:
+            logging.error(f"キャンセル可能判定エラー: {str(e)}")
+            return False
+
     def _get_metal_name_jp(self, metal_type: str) -> str:
         """
         金属名を日本語に変換
