@@ -174,33 +174,7 @@ const LineChart: React.FC<LineChartProps> = ({ labels, menuName, data, color, pe
         }
       },
       tooltip: {
-        enabled: true,
-        mode: 'index',
-        intersect: false,
-        titleFont: {
-          size: isMobile ? 12 : 14
-        },
-        bodyFont: {
-          size: isMobile ? 12 : 14
-        },
-        callbacks: {
-          title: (tooltipItems: TooltipItem<'line'>[]) => {
-            // ツールチップのタイトルを日付形式に変換
-            if (tooltipItems.length > 0 && tooltipItems[0].dataIndex !== undefined) {
-              const dataIndex = tooltipItems[0].dataIndex;
-              if (labels[dataIndex]) {
-                return formatDate(labels[dataIndex], true); // ツールチップでは常に年月日を表示
-              }
-            }
-            return '';
-          },
-          label: (tooltipItem: TooltipItem<'line'>) => {
-            return `${tooltipItem.formattedValue} 円`;
-          }
-        },
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        padding: 10,
-        displayColors: false
+        enabled: false // ツールチップを無効化
       }
     },
     scales: {
@@ -232,12 +206,12 @@ const LineChart: React.FC<LineChartProps> = ({ labels, menuName, data, color, pe
       }
     },
     hover: {
-      mode: 'index',
-      intersect: false
+      mode: 'nearest',
+      intersect: true
     },
     interaction: {
-      mode: 'index',
-      intersect: false
+      mode: 'nearest',
+      intersect: true
     }
   };
 
@@ -250,10 +224,10 @@ const LineChart: React.FC<LineChartProps> = ({ labels, menuName, data, color, pe
         backgroundColor: color,
         tension: 0.1,
         pointRadius: 0,
-        pointHoverRadius: 5,
+        pointHoverRadius: 0,
         pointHoverBackgroundColor: color,
         pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 2
+        pointHoverBorderWidth: 0
       }
     ]
   };
@@ -373,11 +347,6 @@ export const MetalPriceChart = () => {
       <p className="text-center text-gray-500 font-semibold text-base mt-4">
         ※このチャートは当社買取価格を表すものではありません
       </p>
-      {isMobile && (
-        <p className="text-center text-gray-500 text-sm mt-2">
-          グラフをタップすると日付ごとの価格が表示されます
-        </p>
-      )}
     </div>
   );
 };

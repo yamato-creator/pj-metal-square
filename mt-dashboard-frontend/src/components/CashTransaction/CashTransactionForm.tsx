@@ -172,6 +172,11 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
     onCalculate(adjustedAmounts);
   };
 
+  // 消費税込みの合計金額を計算する関数を追加
+  const calculateTaxIncludedTotal = (amount: number) => {
+    return Math.floor(amount * 1.1); // 10%消費税を追加し、小数点以下を切り捨て
+  };
+
   const handleProceed = () => {
     // 保有量を超える値を調整
     let needsAdjustment = false;
@@ -277,6 +282,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
           state: { 
             totalAmount: totalAmount,
             message: '売却が正常に処理されました。',
+            isTaxIncluded: false, // 税抜き価格であることを明示
+            transactionType: '売却' // 取引タイプを指定
           } 
         });
       } catch (error) {
