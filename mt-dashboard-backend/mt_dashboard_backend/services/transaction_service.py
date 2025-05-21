@@ -26,7 +26,8 @@ class TransactionService(SheetsBase):
             if not values:
                 return []
 
-            headers = values[0]
+            # ヘッダーを明示的に指定
+            headers = ['transaction_id', 'user_id', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']
             data = values[1:]
             
             # ユーザーIDと日時でグループ化するための辞書
@@ -213,7 +214,8 @@ class TransactionService(SheetsBase):
             if not values:
                 return None
                 
-            headers = values[0]
+            # ヘッダーを明示的に指定
+            headers = ['transaction_id', 'user_id', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']
             data = values[1:]
             
             for row in data:
@@ -249,7 +251,8 @@ class TransactionService(SheetsBase):
             if not values:
                 return []
                 
-            headers = values[0]
+            # ヘッダーを明示的に指定
+            headers = ['transaction_id', 'user_id', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']
             data = values[1:]
             
             result = []

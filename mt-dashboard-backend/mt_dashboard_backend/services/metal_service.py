@@ -39,7 +39,8 @@ class MetalService(SheetsBase):
             if not result:
                 return []
 
-            headers = result[0]  # 最初の行をヘッダーとして使用
+            # ヘッダーを明示的に指定
+            headers = ['date', 'au_retail_price', 'pt_retail_price', 'pd_retail_price', 'ag_retail_price']
             data = result[1:]    # ヘッダー以降のデータ
             
             history = []
