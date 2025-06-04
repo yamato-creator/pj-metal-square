@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api.routes import auth_routes, user_routes, metal_routes, transaction_routes
+from .api.routes import auth_routes, user_routes, metal_routes, transaction_routes, time_restriction_routes
 import logging
 import os
 
@@ -34,6 +34,7 @@ app.include_router(auth_routes.router, prefix="/api/users", tags=["auth"])
 app.include_router(user_routes.router, prefix="/api/users", tags=["users"])
 app.include_router(metal_routes.router, prefix="/api", tags=["metals"])
 app.include_router(transaction_routes.router, prefix="/api/transactions", tags=["transactions"])
+app.include_router(time_restriction_routes.router, prefix="/api", tags=["time-restriction"])
 
 if __name__ == "__main__":
     import uvicorn

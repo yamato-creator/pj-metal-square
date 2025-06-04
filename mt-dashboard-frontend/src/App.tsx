@@ -28,6 +28,7 @@ import { HomeIcon, CurrencyYenIcon, ClockIcon, CogIcon } from '@heroicons/react/
 import { MetalPriceChart } from './components/MetalPriceChart';
 import { useAuthCheck } from './hooks/useAuthCheck';
 import LandingPage from './pages/LandingPage';
+import { TimeRestrictedApp } from './components/TimeRestrictedApp';
 
 interface Metal {
   name: string;
@@ -758,7 +759,9 @@ function MainContent() {
 function App() {
   return (
     <AuthProvider>
-      <MainContent />
+      <TimeRestrictedApp>
+        <MainContent />
+      </TimeRestrictedApp>
     </AuthProvider>
   );
 }
