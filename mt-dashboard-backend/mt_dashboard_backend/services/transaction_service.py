@@ -57,7 +57,7 @@ class TransactionService(SheetsBase):
                 transaction_time = transaction.get('transaction_datetime', '')
                 transaction_id = transaction.get('transaction_id', '')
                 company_name = "スクエア"
-                status = transaction.get('status', '申込')
+                status = transaction.get('status', '申込済')
                 transaction_type = transaction.get('transaction_type', '')
                 
                 # ユーザーIDと時間の組み合わせをキーとして使用
@@ -92,7 +92,7 @@ class TransactionService(SheetsBase):
                 # このグループの会社名を使用
                 company_name = "スクエア"
                 # このグループのステータスを使用
-                status = transaction_statuses.get(group_key, transaction.get('status', '申込'))
+                status = transaction_statuses.get(group_key, transaction.get('status', '申込済'))
                 # このグループの取引種別を使用
                 transaction_type = transaction_types.get(group_key, transaction.get('transaction_type', ''))
                 
@@ -186,7 +186,7 @@ class TransactionService(SheetsBase):
                 transaction_data.get('weight_g'),                  # 取引量(g)
                 transaction_data.get('unit_price'),                # 単価(ユーザー報告値)
                 str(float(transaction_data.get('total_amount', 0))), # 合計金額
-                '申込',                                          # ステータス
+                '申込済',                                          # ステータス
                 transaction_datetime,                             # 取引日時
                 company_name                                      # CP(取引相手先)
             ]]

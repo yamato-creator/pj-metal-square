@@ -43,18 +43,16 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
     return diffInHours <= 48;
   };
 
-  // 取引日の23:59:59までキャンセル可能かどうかを判定する関数
-  const isCancelable = (dateString: string): boolean => {
+  // 取引日が今日かどうかを判定する関数（24時を過ぎたらPDF表示可能）
+  const isTransactionToday = (dateString: string): boolean => {
     const transactionDate = new Date(dateString);
-    // 取引日の23:59:59を設定
-    const endOfTransactionDay = new Date(
-      transactionDate.getFullYear(),
-      transactionDate.getMonth(),
-      transactionDate.getDate(),
-      23, 59, 59
-    );
-    const now = new Date();
-    return now <= endOfTransactionDay;
+    const today = new Date();
+    
+    // 取引日と今日の日付部分のみを比較（時間は無視）
+    const transactionDateOnly = new Date(transactionDate.getFullYear(), transactionDate.getMonth(), transactionDate.getDate());
+    const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    return transactionDateOnly.getTime() === todayDateOnly.getTime();
   };
 
   // 取引キャンセル確認ダイアログを表示
@@ -69,12 +67,21 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
       setIsLoading(true);
       setShowConfirmDialog(false);
       
+      // 取引IDの検証
+      if (!currentTransactionId) {
+        throw new Error('取引IDが設定されていません');
+      }
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/transactions/cancel/${currentTransactionId}`, {
         method: 'POST',
         headers: {
           ...getAuthHeaders(),
           'Content-Type': 'application/json'
-        }
+        },
+        // 取引IDをリクエストボディにも含める（サーバー側の実装によっては必要）
+        body: JSON.stringify({
+          transaction_id: currentTransactionId
+        })
       });
       
       if (!response.ok) {
@@ -129,7 +136,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h3 className="text-lg font-bold mb-4">取引キャンセルの確認</h3>
-            <p className="mb-6">この取引をキャンセルしますか？キャンセルした場合、取引した金属が返却されます。</p>
+            <p className="mb-6">この取引をキャンセルしますか？キャンセルした場合、売却した金属が返却されます。</p>
             <div className="flex justify-end space-x-3">
               <button 
                 onClick={() => setShowConfirmDialog(false)} 
@@ -168,7 +175,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
         </div>
       )}
 
-      <h1 className="responsive-heading mb-4">決済履歴</h1>
+      <h1 className="responsive-heading mb-4">取引履歴</h1>
       <div className="space-y-4">
         {transactions.map((transaction) => (
           <div key={transaction.id} className="responsive-card bg-white p-4 rounded shadow">
@@ -198,13 +205,17 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                     合計: {transaction.total.toLocaleString()}円
                   </span>
                 )}
-                <TransactionPDFGenerator
-                  transaction={transaction}
-                  className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
-                  userId={user?.user_id}
-                />
-                {/* 取引日の23:59:59までかつステータスが「取消」でない場合のみキャンセルボタンを表示 */}
-                {isCancelable(transaction.date) && transaction.status !== "取消" && (
+                {/* 預入の場合はPDF出力ボタンを非表示、取引日当日の24時までも非表示、キャンセル済みも非表示 */}
+                {transaction.transaction_type !== '預入' && !isTransactionToday(transaction.date) && transaction.status !== "取消" && (
+                  <TransactionPDFGenerator
+                    transaction={transaction}
+                    className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
+                    userId={user?.user_id}
+                    userName={user?.user_name}
+                  />
+                )}
+                {/* 当日24時まで且つステータスが「取消」でない場合、且つ預入でない場合のみキャンセルボタンを表示 */}
+                {isTransactionToday(transaction.date) && transaction.status !== "取消" && transaction.transaction_type !== '預入' && (
                   <button 
                     onClick={() => showCancelConfirmation(transaction.id)}
                     className="bg-gray-600 text-white px-3 py-1 text-sm rounded hover:bg-gray-700"
@@ -213,9 +224,6 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                     注文キャンセル
                   </button>
                 )}
-                <button className="p-1 hover:bg-gray-100 rounded">
-                  <span>▼</span>
-                </button>
               </div>
             </div>
             
