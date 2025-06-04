@@ -23,7 +23,7 @@ const WithdrawCompletionScreen: React.FC = () => {
             to="/transaction-history"
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
           >
-            決済履歴へ
+            取引履歴へ
           </Link>
         </div>
       </div>

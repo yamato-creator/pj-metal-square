@@ -2,7 +2,7 @@ import React from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { TransactionPDF } from './TransactionPDF';
 
-const TransactionPDFGenerator = ({ transaction, className, userId }) => {
+const TransactionPDFGenerator = ({ transaction, className, userId, userName }) => {
   const generateFileName = () => {
     const date = new Date(transaction.date);
     
@@ -20,7 +20,7 @@ const TransactionPDFGenerator = ({ transaction, className, userId }) => {
 
   return (
     <PDFDownloadLink
-      document={<TransactionPDF transaction={transaction} userId={userId} />}
+      document={<TransactionPDF transaction={transaction} userId={userId} userName={userName} />}
       fileName={generateFileName()}
     >
       {({ loading, error }) => (
