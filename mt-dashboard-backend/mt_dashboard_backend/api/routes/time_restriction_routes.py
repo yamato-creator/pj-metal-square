@@ -34,13 +34,13 @@ async def check_access_time():
         is_allowed = True
     elif current_hour >= 1 and current_hour <= 10:
         # 1時台-10時台は制限
-        is_allowed = False
+        is_allowed = True # 本番環境ではFalse
     elif current_hour == 11 and current_minute < 5:
         # 11時台だが5分未満は制限
-        is_allowed = False
+        is_allowed = True # 本番環境ではFalse
     elif current_hour == 0:
         # 0時台（但し00:00:00以外）は制限
-        is_allowed = False
+        is_allowed = True # 本番環境ではFalse
     else:
         # その他は許可（念のため）
         is_allowed = True
