@@ -213,7 +213,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
           
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>スクエア</Text>
-            <Text style={styles.registrationNumber}>(登録番号:)</Text>
+            <Text style={styles.registrationNumber}>(登録番号: T8030003020398)</Text>
           </View>
         </View>
 

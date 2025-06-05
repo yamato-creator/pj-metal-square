@@ -1,5 +1,6 @@
 import httpx
 import logging
+import math
 from typing import Optional
 import pandas as pd
 
@@ -9,6 +10,13 @@ class EmailSender:
     def __init__(self):
         self.email_function_url = "https://asia-northeast1-astute-maxim-457911-g9.cloudfunctions.net/send_email_http_square"
         self.headers = {"Content-Type": "application/json"}
+        # 複数の管理者メールアドレスを配列で定義
+        self.admin_emails = [
+            "precious.metal.mine@gmail.com",
+            "square.hirata@gmail.com", 
+            "square_hoshi@outlook.jp",
+            "kobesendaikanto@outlook.jp"
+        ]
 
     async def send_email(self, to: str, subject: str, body: str) -> bool:
         """
@@ -43,6 +51,27 @@ class EmailSender:
             logging.error(f"メール送信エラー: {str(e)}")
             return False
 
+    # 管理者全員にメールを送信する新しいメソッド
+    async def send_email_to_all_admins(self, subject: str, body: str) -> bool:
+        """
+        すべての管理者にメールを送信する
+        
+        Args:
+            subject (str): メールの件名
+            body (str): メール本文
+            
+        Returns:
+            bool: 少なくとも1つの送信が成功した場合にTrue
+        """
+        success = False
+        for admin_email in self.admin_emails:
+            result = await self.send_email(admin_email, subject, body)
+            if result:
+                success = True
+            else:
+                logging.error(f"管理者 {admin_email} へのメール送信に失敗しました。")
+        return success
+
     async def send_user_registration_email(self, user_email: str, username: str, created_at: str) -> bool:
         """ユーザー登録完了メールを送信"""
         subject = "ユーザー登録完了のお知らせ"
@@ -73,7 +102,7 @@ https://www.preciousmetalmine.com/
 メールアドレス: {user_email}
 登録日時: {created_at}"""
             
-            await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
 
@@ -99,7 +128,7 @@ https://www.preciousmetalmine.com/
 メールアドレス: {user_email}
 変更日時: {change_datetime}"""
             
-            admin_success = await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
 
@@ -135,7 +164,7 @@ https://www.preciousmetalmine.com/
 変更後: {new_email}
 変更日時: {change_datetime}"""
             
-            await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
 
@@ -163,7 +192,7 @@ https://www.preciousmetalmine.com/
 メールアドレス: {user_email}
 退会処理日時: {deactivation_datetime}"""
             
-            await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
 
@@ -210,7 +239,7 @@ https://www.preciousmetalmine.com/
 
 取引日時: {sale_datetime}"""
             
-            admin_success = await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
 
@@ -252,7 +281,7 @@ https://www.preciousmetalmine.com/
 
 ユーザーメールアドレス: {user_email}"""
             
-            admin_success = await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
 
@@ -288,7 +317,7 @@ https://www.preciousmetalmine.com/
 預入内容:
 {deposit_details}"""
             
-            await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
 
@@ -324,6 +353,6 @@ https://www.preciousmetalmine.com/
 返却内容:
 {withdraw_details}"""
             
-            await self.send_email("precious.metal.mine@gmail.com", admin_subject, admin_body)
+            await self.send_email_to_all_admins(admin_subject, admin_body)
         
         return success
