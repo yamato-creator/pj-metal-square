@@ -53,7 +53,7 @@ const LandingPage = () => {
               ログイン
             </Button>
 
-            <Button 
+            {/* <Button 
               variant="outlined" 
               fullWidth 
               size="large"
@@ -61,7 +61,7 @@ const LandingPage = () => {
               sx={{ py: 1.5 }}
             >
               新規登録
-            </Button>
+            </Button> */}
           </Box>
         </Paper>
       </Container>

@@ -41,7 +41,7 @@ const RestrictedPage: React.FC<{ timeInfo: TimeCheckResponse }> = ({ timeInfo })
         アクセス制限中
       </h1>
       <p className="text-gray-600 mb-4">
-        このサイトは11:05-24:00の間のみご利用いただけます。
+        このサイトは10:00-24:00の間のみご利用いただけます。
       </p>
     </div>
   </div>

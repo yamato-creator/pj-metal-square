@@ -1,9 +1,10 @@
 // src/components/CashTransaction/CashTransactionForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import ConfirmationModal from './ConfirmationModal';
 import { useAuth } from '../../contexts/AuthContext';
+import { isTransactionButtonVisible } from '../../utils/timeRestriction';
 
 interface Metal {
   name: string;
@@ -52,6 +53,19 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showTransactionButton, setShowTransactionButton] = useState(false);
+
+  // 時間制限チェックを定期的に実行
+  useEffect(() => {
+    const checkButtonVisibility = () => {
+      setShowTransactionButton(isTransactionButtonVisible());
+    };
+
+    checkButtonVisibility(); // 初回チェック
+    const interval = setInterval(checkButtonVisibility, 60000); // 1分ごとにチェック
+
+    return () => clearInterval(interval);
+  }, []);
 
   const formatPrice = (price: number) => {
     if (price === 0) return '0円';
@@ -371,17 +385,20 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
             >
               計算
             </button>
-            <button
-              onClick={handleProceed}
-              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
-            >
-              売却手続きへ
-            </button>
+            {showTransactionButton && (
+              <button
+                onClick={handleProceed}
+                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+              >
+                売却手続きへ
+              </button>
+            )}
           </div>
         </div>
       </div>
       
       <div className="mt-2 text-left text-gray-500 text-xl font-bold">※上記価格は消費税は含まれておりません</div>
+      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※現金決済は10:00〜12:30、14:30〜15:30の時間帯のみ利用可能です</div>
       
       <ConfirmationModal
         isOpen={isConfirmationOpen}
