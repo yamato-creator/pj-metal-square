@@ -35,6 +35,9 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
   const [currentTransactionId, setCurrentTransactionId] = useState<string>('');
   const [resultMessage, setResultMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
+  // キャンセルボタンの表示制御設定（将来的に有効化する可能性があるため設定として分離）
+  const ENABLE_CANCEL_BUTTON = false;
+
   // 48時間以内かどうかを判定する関数
   const isWithin48Hours = (dateString: string): boolean => {
     const transactionDate = new Date(dateString);
@@ -205,8 +208,8 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                     合計: {transaction.total.toLocaleString()}円
                   </span>
                 )}
-                {/* 預入の場合はPDF出力ボタンを非表示、取引日当日の24時までも非表示、キャンセル済みも非表示 */}
-                {transaction.transaction_type !== '預入' && !isTransactionToday(transaction.date) && transaction.status !== "取消" && (
+                {/* PDF出力ボタン: 預入とキャンセル済み以外は常に表示 */}
+                {transaction.transaction_type !== '預入' && transaction.status !== "取消" && (
                   <TransactionPDFGenerator
                     transaction={transaction}
                     className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
@@ -215,7 +218,8 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                   />
                 )}
                 {/* 当日24時まで且つステータスが「取消」でない場合、且つ預入でない場合のみキャンセルボタンを表示 */}
-                {isTransactionToday(transaction.date) && transaction.status !== "取消" && transaction.transaction_type !== '預入' && (
+                {/* キャンセルボタン表示条件: ENABLE_CANCEL_BUTTON && isTransactionToday(transaction.date) && transaction.status !== "取消" && transaction.transaction_type !== '預入' */}
+                {ENABLE_CANCEL_BUTTON && isTransactionToday(transaction.date) && transaction.status !== "取消" && transaction.transaction_type !== '預入' && (
                   <button 
                     onClick={() => showCancelConfirmation(transaction.id)}
                     className="bg-gray-600 text-white px-3 py-1 text-sm rounded hover:bg-gray-700"

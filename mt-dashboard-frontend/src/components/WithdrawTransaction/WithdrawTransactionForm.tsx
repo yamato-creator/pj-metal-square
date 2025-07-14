@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import ConfirmationModal from '../CashTransaction/ConfirmationModal';
+import { isTransactionButtonVisible } from '../../utils/timeRestriction';
 
 interface Metal {
   name: string;
@@ -43,6 +44,19 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTransactionButton, setShowTransactionButton] = useState(false);
+
+  // 時間制限チェックを定期的に実行
+  useEffect(() => {
+    const checkButtonVisibility = () => {
+      setShowTransactionButton(isTransactionButtonVisible());
+    };
+
+    checkButtonVisibility(); // 初回チェック
+    const interval = setInterval(checkButtonVisibility, 60000); // 1分ごとにチェック
+
+    return () => clearInterval(interval);
+  }, []);
 
   // 金とパラジウムのみをフィルタリングし、保有量が0より大きい金属のみを表示
   const filteredMetals = metals.filter(m => (m.name === 'Au' || m.name === 'Pd') && m.amount > 0);
@@ -375,14 +389,18 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
           </table>
         </div>
         <div className="flex justify-end mt-4">
-          <button
-            onClick={handleProceed}
-            className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
-          >
-            返却手続きへ
-          </button>
+          {showTransactionButton && (
+            <button
+              onClick={handleProceed}
+              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+            >
+              返却手続きへ
+            </button>
+          )}
         </div>
       </div>
+      
+      <div className="mt-2 text-left text-gray-500 text-xl font-bold">※現物返却は10:00〜12:30、14:30〜15:30の時間帯のみ利用可能です</div>
       
       <ConfirmationModal
         isOpen={isConfirmationOpen}
