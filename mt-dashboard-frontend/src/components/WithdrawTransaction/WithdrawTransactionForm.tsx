@@ -49,7 +49,8 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
   // 時間制限チェックを定期的に実行
   useEffect(() => {
     const checkButtonVisibility = () => {
-      setShowTransactionButton(isTransactionButtonVisible());
+      const isVisible = isTransactionButtonVisible();
+      setShowTransactionButton(isVisible);
     };
 
     checkButtonVisibility(); // 初回チェック

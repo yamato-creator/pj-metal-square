@@ -15,18 +15,24 @@ export interface TimeCheckResponse {
 export const isTransactionButtonVisible = (): boolean => {
   const now = new Date();
   
-  // 日本時間に変換（UTC+9）
-  const jstNow = new Date(now.getTime() + (9 * 60 * 60 * 1000));
-  const hour = jstNow.getHours();
-  const minute = jstNow.getMinutes();
+  // 日本時間を確実に取得
+  const jstHour = parseInt(now.toLocaleString("en-US", { 
+    timeZone: "Asia/Tokyo", 
+    hour: "2-digit", 
+    hour12: false 
+  }));
+  const jstMinute = parseInt(now.toLocaleString("en-US", { 
+    timeZone: "Asia/Tokyo", 
+    minute: "2-digit" 
+  }));
   
   // 10:00-12:30の時間帯
-  if (hour === 10 || hour === 11 || (hour === 12 && minute <= 30)) {
+  if (jstHour === 10 || jstHour === 11 || (jstHour === 12 && jstMinute <= 30)) {
     return true;
   }
   
   // 14:30-15:30の時間帯
-  if ((hour === 14 && minute >= 30) || (hour === 15 && minute <= 30)) {
+  if ((jstHour === 14 && jstMinute >= 30) || (jstHour === 15 && jstMinute <= 30)) {
     return true;
   }
   
