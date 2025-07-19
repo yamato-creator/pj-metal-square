@@ -54,6 +54,21 @@ class MetalService(SheetsBase):
             logging.error(f"価格履歴データの取得に失敗: {str(e)}")
             return []
 
+    def fetch_price_update_time(self) -> str:
+        """買取価格の更新日時を取得"""
+        try:
+            result = self._get_sheet_data("'metal-prices'!E2:E2")
+            if not result or not result[0]:
+                return ""
+            
+            # E2セルの値を取得
+            update_time = result[0][0] if result[0] else ""
+            return str(update_time)
+            
+        except Exception as e:
+            logging.error(f"価格更新日時取得エラー: {str(e)}")
+            return ""
+
     def _get_metal_name_jp(self, metal_type: str) -> str:
         """
         金属名を日本語に変換

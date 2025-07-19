@@ -67,6 +67,29 @@ async def get_metal_prices_history(
             detail="価格履歴データの取得に失敗しました"
         )
 
+@router.get("/metal-prices/update-time")
+async def get_metal_prices_update_time(
+    current_user: dict = Depends(verify_api_key)
+):
+    """買取価格の更新日時を取得"""
+    try:
+        metal_service = MetalService()
+        update_time = metal_service.fetch_price_update_time()
+        
+        return {
+            "status": "success",
+            "update_time": update_time
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"価格更新日時取得エラー: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="価格更新日時の取得に失敗しました"
+        )
+
 @router.get("/user/{user_id}/assets")
 async def get_user_assets(
     user_id: str,

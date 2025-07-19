@@ -12,9 +12,10 @@ interface Props {
   metals: Metal[];
   onUpdateAssets?: (assets: any[]) => void;
   isLoading?: boolean;
+  priceUpdateTime?: string;
 }
 
-const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => {
+const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading, priceUpdateTime }) => {
   // 現在の日付を取得して表示形式をフォーマット (例: 2025年4月20日現在)
   const formatCurrentDate = () => {
     const today = new Date();
@@ -22,6 +23,27 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
     const month = today.getMonth() + 1;
     const day = today.getDate();
     return `${year}年${month}月${day}日現在`;
+  };
+
+  // 買取価格の更新日時をフォーマット
+  const formatPriceUpdateTime = () => {
+    if (!priceUpdateTime) return '';
+    try {
+      // priceUpdateTimeの形式に応じて適切にパース
+      const date = new Date(priceUpdateTime);
+      if (isNaN(date.getTime())) {
+        // 日付形式でない場合は、そのまま表示
+        return `買取価格は${priceUpdateTime}更新(日本時間)`;
+      }
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `買取価格は${year}年${month}月${day}日 ${hours}:${minutes}更新(日本時間)`;
+    } catch {
+      return `買取価格は${priceUpdateTime}更新(日本時間)`;
+    }
   };
 
   const totalAssets = metals.reduce((sum, metal) => {
@@ -92,6 +114,9 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading }) => 
           </span>
         </div>
       </div>
+      {priceUpdateTime && (
+        <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
+      )}
       <div className="mt-2 text-left text-gray-500 text-xl font-bold">※上記価格は消費税は含まれておりません</div>
     </div>
   );

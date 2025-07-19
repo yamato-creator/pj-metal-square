@@ -30,9 +30,10 @@ interface CashTransactionFormProps {
   onSale: (saleAmounts: { [key: string]: number }) => Promise<SaleResult | null>;
   onCalculate: (amounts: { [key: string]: number }) => CalculateResult;
   onSaleComplete: (result: any) => void;
+  priceUpdateTime?: string;
 }
 
-const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSale, onCalculate, onSaleComplete }) => {
+const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSale, onCalculate, onSaleComplete, priceUpdateTime }) => {
   const navigate = useNavigate();
   const { getAuthHeaders } = useAuth();
   const theme = useTheme();
@@ -76,6 +77,27 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
   const formatAmount = (amount: number) => {
     if (amount === 0) return '0 g';
     return `${amount.toFixed(2)} g`;
+  };
+
+  // 買取価格の更新日時をフォーマット
+  const formatPriceUpdateTime = () => {
+    if (!priceUpdateTime) return '';
+    try {
+      // priceUpdateTimeの形式に応じて適切にパース
+      const date = new Date(priceUpdateTime);
+      if (isNaN(date.getTime())) {
+        // 日付形式でない場合は、そのまま表示
+        return `買取価格は${priceUpdateTime}更新(日本時間)`;
+      }
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `買取価格は${year}年${month}月${day}日 ${hours}:${minutes}更新(日本時間)`;
+    } catch {
+      return `買取価格は${priceUpdateTime}更新(日本時間)`;
+    }
   };
 
   const handleAmountChange = (metalName: string, value: string) => {
@@ -398,7 +420,10 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         </div>
       </div>
       
-      <div className="mt-2 text-left text-gray-500 text-xl font-bold">※上記価格は消費税は含まれておりません</div>
+      {priceUpdateTime && (
+        <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
+      )}
+      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※上記価格は消費税は含まれておりません</div>
       <div className="mt-1 text-left text-gray-500 text-xl font-bold">※現金決済は10:00〜12:30、14:30〜15:30の時間帯のみ利用可能です</div>
       
       <ConfirmationModal

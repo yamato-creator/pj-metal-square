@@ -214,6 +214,7 @@ function MainContent() {
   const { clearCache } = useTransactions();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [priceUpdateTime, setPriceUpdateTime] = useState<string>('');
   const [metals, setMetals] = useState<Metal[]>([
     { name: 'Au', nameJp: '(金)', amount: 0, unitPrice: 0 },
     { name: 'Pd', nameJp: '(パラジウム)', amount: 0, unitPrice: 0 },
@@ -320,13 +321,20 @@ function MainContent() {
 
   // 金属価格の取得
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/metal-prices`, {
-      headers: getAuthHeaders()
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') {
-          const prices = data.data;
+    // 金属価格と更新日時を並行して取得
+    Promise.all([
+      fetch(`${process.env.REACT_APP_API_URL}/api/metal-prices`, {
+        headers: getAuthHeaders()
+      }),
+      fetch(`${process.env.REACT_APP_API_URL}/api/metal-prices/update-time`, {
+        headers: getAuthHeaders()
+      })
+    ])
+      .then(([pricesRes, updateTimeRes]) => Promise.all([pricesRes.json(), updateTimeRes.json()]))
+      .then(([pricesData, updateTimeData]) => {
+        // 価格データの処理
+        if (pricesData.status === 'success') {
+          const prices = pricesData.data;
           
           setMetals(prevMetals => 
             prevMetals.map(metal => {
@@ -352,6 +360,11 @@ function MainContent() {
               };
             })
           );
+        }
+        
+        // 更新日時データの処理
+        if (updateTimeData.status === 'success') {
+          setPriceUpdateTime(updateTimeData.update_time);
         }
       })
       .catch(error => console.error('価格データの取得に失敗:', error));
@@ -673,7 +686,7 @@ function MainContent() {
             element={
               <ProtectedRoute>
                 <div className="container mx-auto px-4 py-8">
-                  <AssetStatus metals={metals} isLoading={isLoadingAssets} />
+                  <AssetStatus metals={metals} isLoading={isLoadingAssets} priceUpdateTime={priceUpdateTime} />
                   <div className="mt-8 chart-container">
                     <MetalPriceChart />
                   </div>
@@ -707,6 +720,7 @@ function MainContent() {
                   onSale={handleSale}
                   onCalculate={handleCalculate}
                   onSaleComplete={handleSaleComplete}
+                  priceUpdateTime={priceUpdateTime}
                 />
               </ProtectedRoute>
             }
