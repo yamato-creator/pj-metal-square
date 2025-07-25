@@ -208,8 +208,8 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                     合計: {transaction.total.toLocaleString()}円
                   </span>
                 )}
-                {/* PDF出力ボタン: 預入とキャンセル済み以外は常に表示 */}
-                {transaction.transaction_type !== '預入' && transaction.status !== "取消" && (
+                {/* PDF出力ボタン: 預入とキャンセル済み以外、かつ取引日の24時を過ぎた場合に表示 */}
+                {transaction.transaction_type !== '預入' && transaction.status !== "取消" && !isTransactionToday(transaction.date) && (
                   <TransactionPDFGenerator
                     transaction={transaction}
                     className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
