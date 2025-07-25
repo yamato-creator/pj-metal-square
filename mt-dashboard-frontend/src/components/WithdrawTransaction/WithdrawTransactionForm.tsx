@@ -59,8 +59,8 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     return () => clearInterval(interval);
   }, []);
 
-  // 金とパラジウムのみをフィルタリングし、保有量が0より大きい金属のみを表示
-  const filteredMetals = metals.filter(m => (m.name === 'Au' || m.name === 'Pd') && m.amount > 0);
+  // 金のみをフィルタリングし、保有量が0より大きい金属のみを表示
+  const filteredMetals = metals.filter(m => m.name === 'Au' && m.amount > 0);
 
   const formatAmount = (amount: number) => {
     if (amount === 0 && metals.every(m => m.amount === 0)) return '';
@@ -309,7 +309,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
         <h2 className="responsive-subheading mb-4">返却数量入力</h2>
         
         <div className="mb-4">
-          <p className="responsive-text text-gray-600 mb-2">※ 金とパラジウムのみ返却可能です</p>
+          <p className="responsive-text text-gray-600 mb-2">※ 金のみ返却可能です</p>
           <p className="responsive-text text-gray-600 mb-2">※ 指定返却は50g単位になります（入力完了時に自動調整されます）</p>
           <label className="responsive-text">返却方式：</label>
           <div className="mt-2 space-x-4">
