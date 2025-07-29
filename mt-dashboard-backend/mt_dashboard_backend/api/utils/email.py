@@ -11,11 +11,12 @@ class EmailSender:
         self.email_function_url = "https://asia-northeast1-astute-maxim-457911-g9.cloudfunctions.net/send_email_http_square"
         self.headers = {"Content-Type": "application/json"}
         # 複数の管理者メールアドレスを配列で定義
-        self.admin_emails = ["precious.metal.mine@gmail.com"]
-            # 納品まで一時的にコメントアウト
-            # "square.hirata@gmail.com", 
-            # "square_hoshi@outlook.jp",
-            # "kobesendaikanto@outlook.jp"
+        self.admin_emails = [
+            "precious.metal.mine@gmail.com",
+            "square.hirata@gmail.com", 
+            "square_hoshi@outlook.jp",
+            "kobesendaikanto@outlook.jp"
+        ]
         
 
     async def send_email(self, to: str, subject: str, body: str) -> bool:

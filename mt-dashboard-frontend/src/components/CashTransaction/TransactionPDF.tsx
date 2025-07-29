@@ -212,7 +212,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
           <Text style={styles.title}>Precious Metal Mine</Text>
           
           <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>スクエア</Text>
+            <Text style={styles.companyName}>{transaction.company || 'スクエア合同会社'}</Text>
             <Text style={styles.registrationNumber}>(登録番号: T8030003020398)</Text>
           </View>
         </View>
