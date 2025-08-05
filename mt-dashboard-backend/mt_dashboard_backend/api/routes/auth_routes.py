@@ -82,17 +82,17 @@ async def login_user(user: UserLogin):
     ユーザーログイン
     """
     try:
-        logger.info(f"ログインリクエスト受信: {user.email}")
+        logger.info(f"ログインリクエスト受信: {user.user_id}")
         user_service = UserService()
         
-        # メールアドレスでユーザーを検索
-        user_data = user_service.get_user_by_email(user.email)
+        # ユーザーIDでユーザーを検索
+        user_data = user_service.fetch_user_by_id(user.user_id)
         
         if not user_data:
-            logger.warning(f"ログイン失敗: {user.email}")
+            logger.warning(f"ログイン失敗: {user.user_id}")
             raise HTTPException(
                 status_code=401,
-                detail="メールアドレスまたはパスワードが間違っています"
+                detail="ユーザーIDまたはパスワードが間違っています"
             )
 
         # 退会済みチェック
@@ -106,7 +106,7 @@ async def login_user(user: UserLogin):
         if user_data['password'].strip() != user.password.strip():
             raise HTTPException(
                 status_code=401,
-                detail="メールアドレスまたはパスワードが間違っています"
+                detail="ユーザーIDまたはパスワードが間違っています"
             )
 
         logger.info(f"ログイン成功: {user_data['user_id']}")

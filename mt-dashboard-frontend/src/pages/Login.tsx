@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const Login = () => {
-  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +17,7 @@ export const Login = () => {
     setIsLoading(true);
     
     try {
-      const success = await login(email, password);
+      const success = await login(userId, password);
       if (success) {
         navigate('/dashboard');
       }
@@ -58,9 +58,9 @@ export const Login = () => {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="メールアドレス"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            label="ユーザーID"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
             margin="normal"
             disabled={isLoading}
           />

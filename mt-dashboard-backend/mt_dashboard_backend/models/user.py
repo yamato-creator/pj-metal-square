@@ -23,8 +23,9 @@ class UserRegister(UserBase):
             raise ValueError("パスワードは8文字以上で入力してください")
         return v
 
-class UserLogin(UserBase):
+class UserLogin(BaseModel):
     """ログイン時のリクエストモデル"""
+    user_id: str
     password: str
 
 class UserResponse(UserBase):

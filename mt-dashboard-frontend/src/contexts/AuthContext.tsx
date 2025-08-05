@@ -96,19 +96,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   });
 
-  const login = async (email: string, password: string) => {
+  const login = async (userId: string, password: string) => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ user_id: userId, password })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         switch (response.status) {
           case 401:
-            throw new Error(errorData.detail || 'メールアドレスまたはパスワードが間違っています');
+            throw new Error(errorData.detail || 'ユーザーIDまたはパスワードが間違っています');
           case 403:
             throw new Error('このアカウントは退会済みです');
           default:
