@@ -75,32 +75,32 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading, price
   }
 
   return (
-    <div className="responsive-container dashboard-component">
+    <div className="responsive-container dashboard-component !px-2 sm:!px-6">
       <div className="flex flex-col mb-4">
         <h1 className="responsive-heading">資産状況</h1>
         <span className="text-gray-600 text-2xl">{formatCurrentDate()}</span>
       </div>
-      <div className="responsive-card bg-white">
-        <div className="responsive-table">
-          <table className="w-full">
+      <div className="responsive-card bg-white !p-2 sm:!p-6">
+        <div className="responsive-table overflow-x-auto">
+          <table className="w-full tabular-nums text-xs sm:text-base">
             <thead>
               <tr>
-                <th className="text-left responsive-text">金属名</th>
-                <th className="text-right responsive-text">保有量</th>
-                <th className="text-right responsive-text">買取価格</th>
-                <th className="text-right responsive-text">評価額</th>
+                <th className="text-left whitespace-nowrap">金属名</th>
+                <th className="text-right whitespace-nowrap">保有量(g)</th>
+                <th className="text-right whitespace-nowrap">買取価格(円/g)</th>
+                <th className="text-right whitespace-nowrap">評価額(円)</th>
               </tr>
             </thead>
             <tbody>
               {metals.map((metal) => (
                 <tr key={metal.name} className="border-t">
-                  <td className="py-2 responsive-text">{metal.name} {metal.nameJp}</td>
-                  <td className="text-right py-2 responsive-text">{formatAmount(metal.amount)}</td>
-                  <td className="text-right py-2 responsive-text">
-                    {metal.unitPrice === 0 ? '' : `${Math.floor(metal.unitPrice).toLocaleString()} 円/g`}
+                  <td className="py-2 whitespace-nowrap">{metal.name} {metal.nameJp}</td>
+                  <td className="text-right py-2 whitespace-nowrap">{metal.amount === 0 ? '' : metal.amount.toFixed(2)}</td>
+                  <td className="text-right py-2 whitespace-nowrap">
+                    {metal.unitPrice === 0 ? '' : Math.floor(metal.unitPrice).toLocaleString()}
                   </td>
-                  <td className="text-right py-2 responsive-text">
-                    {formatPrice(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice))}
+                  <td className="text-right py-2 whitespace-nowrap">
+                    {Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice) === 0 ? '0' : Math.floor(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice)).toLocaleString()}
                   </td>
                 </tr>
               ))}

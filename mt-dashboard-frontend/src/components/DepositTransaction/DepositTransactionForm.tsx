@@ -157,7 +157,7 @@ const DepositTransactionForm: React.FC<DepositTransactionFormProps> = ({ metals,
       <div className="responsive-card bg-white">
         <h2 className="responsive-subheading mb-4">資産状況と預入数量入力</h2>
         <div className="responsive-table">
-          <table className="w-full">
+          <table className="w-full tabular-nums">
             <thead>
               <tr>
                 <th className="text-left responsive-text">金属名</th>

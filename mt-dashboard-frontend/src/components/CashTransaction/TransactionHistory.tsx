@@ -184,7 +184,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
           <div key={transaction.id} className="responsive-card bg-white p-4 rounded shadow">
             <div className="flex justify-between items-center mb-2">
               <div>
-                <div>{transaction.date}</div>
+                <div>{transaction.date ? transaction.date.split(' ')[0] : ''}</div>
                 <div>{transaction.company}</div>
                 {/* 取引種別を表示 */}
                 {transaction.transaction_type && (
@@ -235,7 +235,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
               {/* 取引種別が預入の場合とそれ以外で表示を分ける */}
               {transaction.transaction_type === '預入' ? (
                 <div>
-                  <table className="w-full max-w-lg mx-auto">
+                  <table className="w-full max-w-lg mx-auto tabular-nums">
                     <thead>
                       <tr>
                         <th className="text-left w-2/3">金属名</th>
@@ -254,7 +254,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 </div>
               ) : transaction.transaction_type === '現物返却' ? (
                 <div>
-                  <table className="w-full max-w-lg mx-auto">
+                  <table className="w-full max-w-lg mx-auto tabular-nums">
                     <thead>
                       <tr>
                         <th className="text-left w-2/3">金属名</th>
@@ -278,7 +278,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                     <div>適用税率 10% 消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
                   </div>
                   
-                  <table className="w-full max-w-2xl mx-auto">
+                  <table className="w-full max-w-2xl mx-auto tabular-nums">
                     <thead>
                       <tr>
                         <th className="text-left">金属名</th>

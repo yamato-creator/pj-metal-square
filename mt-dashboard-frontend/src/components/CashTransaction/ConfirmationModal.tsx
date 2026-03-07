@@ -53,7 +53,7 @@ const ConfirmationModal: React.FC<Props> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
         <h2 className="text-xl font-bold mb-4">確認画面</h2>
-        <table className="w-full mb-4">
+        <table className="w-full mb-4 tabular-nums">
           <thead>
             <tr>
               <th className="text-left">金属名</th>

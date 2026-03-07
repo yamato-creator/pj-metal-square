@@ -233,7 +233,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
         {/* 取引情報 */}
         <View style={styles.transactionInfoBox}>
           <View style={styles.transactionInfoRow}>
-            <Text style={{ fontSize: 12 }}>注文日: {transaction.date}</Text>
+            <Text style={{ fontSize: 12 }}>注文日: {getTransactionDate(transaction.date)}</Text>
           </View>
           <View style={styles.transactionInfoRow}>
             <Text style={{ fontSize: 12 }}>取引日: {getTransactionDate(transaction.date)}</Text>

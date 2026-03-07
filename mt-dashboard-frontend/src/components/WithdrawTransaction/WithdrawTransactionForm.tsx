@@ -339,7 +339,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
         </div>
         
         <div className="responsive-table">
-          <table className="w-full">
+          <table className="w-full tabular-nums">
             <thead>
               <tr>
                 <th className="text-left responsive-text">金属名</th>

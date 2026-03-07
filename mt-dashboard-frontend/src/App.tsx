@@ -117,8 +117,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                   />
                 </svg>
               </button>
-              <img src="/logo.png" alt="会社ロゴ" className="h-auto w-36 ml-1 mr-2 object-contain" />
-              <span className="ml-1 font-semibold">Precious Metal Mine</span>
+              <img src="/logo.png" alt="会社ロゴ" className="h-auto w-28 ml-1 mr-2 object-contain" />
+              <span className="ml-1 text-sm font-semibold">Precious Metal Mine</span>
             </div>
           )}
           

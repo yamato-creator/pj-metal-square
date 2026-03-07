@@ -352,7 +352,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         <h2 className="responsive-subheading mb-4">資産状況と売却数量入力</h2>
         <p className="responsive-text text-gray-600 mb-2">※ 保有量を超える売却はできません</p>
         <div className="responsive-table">
-          <table className="w-full">
+          <table className="w-full tabular-nums">
             <thead>
               <tr>
                 <th className="text-left responsive-text">金属名</th>

@@ -57,23 +57,23 @@ const LoadingPage: React.FC = () => (
 );
 
 export const TimeRestrictedApp: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [timeInfo, setTimeInfo] = useState<TimeCheckResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const checkTime = async () => {
-    const result = await checkServerTime();
-    setTimeInfo(result);
-    setIsLoading(false);
-  };
+  const isDev = process.env.NODE_ENV === 'development';
+  const [timeInfo, setTimeInfo] = useState<TimeCheckResponse | null>(isDev ? { is_allowed: true, current_time: '', current_hour: 12, allowed_hours: '', message: '' } : null);
+  const [isLoading, setIsLoading] = useState(!isDev);
 
   useEffect(() => {
-    checkTime();
+    if (isDev) return;
 
-    // 1分ごとに時間をチェック
+    const checkTime = async () => {
+      const result = await checkServerTime();
+      setTimeInfo(result);
+      setIsLoading(false);
+    };
+
+    checkTime();
     const interval = setInterval(checkTime, 60000);
-    
     return () => clearInterval(interval);
-  }, []);
+  }, [isDev]);
 
   if (isLoading) {
     return <LoadingPage />;
