@@ -35,7 +35,7 @@ class MetalService(SheetsBase):
     def fetch_metal_prices_history(self) -> List[Dict]:
         """価格履歴データを取得"""
         try:
-            result = self._get_sheet_data("'metal-prices'!A9:E374")
+            result = self._get_sheet_data("'metal-prices'!A9:E")
             if not result:
                 return []
 
