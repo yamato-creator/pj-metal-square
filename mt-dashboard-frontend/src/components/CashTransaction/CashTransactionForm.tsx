@@ -1,7 +1,7 @@
 // src/components/CashTransaction/CashTransactionForm.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import ConfirmationModal from './ConfirmationModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { isTransactionButtonVisible } from '../../utils/timeRestriction';
@@ -36,8 +36,6 @@ interface CashTransactionFormProps {
 const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSale, onCalculate, onSaleComplete, priceUpdateTime }) => {
   const navigate = useNavigate();
   const { getAuthHeaders } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [saleAmounts, setSaleAmounts] = useState<{ [key: string]: number }>(() => {
     return metals.reduce((acc, metal) => ({
       ...acc,
@@ -207,11 +205,6 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
     }, 0);
     setTotalAmount(total);
     onCalculate(adjustedAmounts);
-  };
-
-  // 消費税込みの合計金額を計算する関数を追加
-  const calculateTaxIncludedTotal = (amount: number) => {
-    return Math.floor(amount * 1.1); // 10%消費税を追加し、小数点以下を切り捨て
   };
 
   const handleProceed = () => {
