@@ -43,3 +43,7 @@ yarn-error.log*
 # Virtual Environment
 venv/
 .venv/
+.vercel
+
+# Pytest
+.pytest_cache/
