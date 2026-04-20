@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Paper, Typography, Alert, Link } from '@mui/material';
+import { Box, TextField, Button, Paper, Typography, Alert } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 
 export const Login = () => {
   const [userId, setUserId] = useState('');
@@ -98,6 +98,14 @@ export const Login = () => {
           >
             戻る
           </Button>
+          <Box sx={{ textAlign: 'center', mt: 1 }}>
+            <RouterLink
+              to="/privacy-policy"
+              style={{ color: '#6b7280', fontSize: '0.875rem' }}
+            >
+              プライバシーポリシー
+            </RouterLink>
+          </Box>
         </form>
       </Paper>
     </Box>

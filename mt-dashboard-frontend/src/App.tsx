@@ -28,6 +28,7 @@ import { HomeIcon, CurrencyYenIcon, ClockIcon, CogIcon } from '@heroicons/react/
 import { MetalPriceChart } from './components/MetalPriceChart';
 import { useAuthCheck } from './hooks/useAuthCheck';
 import LandingPage from './pages/LandingPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import { TimeRestrictedApp } from './components/TimeRestrictedApp';
 
 interface Metal {
@@ -681,6 +682,7 @@ function MainContent() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Navigate to="/" replace />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route
             path="/dashboard"
             element={
