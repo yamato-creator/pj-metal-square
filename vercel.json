@@ -1,0 +1,8 @@
+{
+  "framework": "create-react-app",
+  "build": {
+    "env": {
+      "CI": "false"
+    }
+  }
+}
