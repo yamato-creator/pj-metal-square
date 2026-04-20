@@ -244,6 +244,59 @@ https://www.preciousmetalmine.com/
         
         return success
 
+    async def send_sale_quote_request_email(
+        self,
+        user_email: str,
+        username: str,
+        user_id: str,
+        quote_details: str,
+        reference_total: int,
+        transaction_id: str,
+    ) -> bool:
+        """売却見積もり依頼の通知メール（ユーザー受付 + スクエア管理者通知）"""
+        request_datetime = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # ユーザー向け: 受付完了通知
+        user_subject = "売却見積もり依頼を受け付けました"
+        user_body = f"""
+Precious Metal Mineをご利用いただきありがとうございます。
+以下の内容で売却見積もり依頼を受け付けました。
+
+依頼内容:
+{quote_details}
+
+参考合計金額(税抜): {reference_total:,}円
+
+受付日時: {request_datetime}
+依頼番号: {transaction_id}
+
+担当者が内容を確認のうえ、改めて正式な見積もりをご連絡いたします。
+今しばらくお待ちください。
+"""
+        success = await self.send_email(user_email, user_subject, user_body)
+
+        # スクエア管理者向け: 依頼通知
+        admin_subject = "【要対応】新規の売却見積もり依頼"
+        admin_body = f"""
+ユーザーより売却見積もり依頼が届きました。内容をご確認のうえ、正式な見積もり金額を提示してください。
+
+■ユーザー情報
+ユーザー名: {username}
+ユーザーID: {user_id}
+メールアドレス: {user_email}
+
+■依頼内容
+{quote_details}
+
+参考合計金額(税抜): {reference_total:,}円
+
+受付日時: {request_datetime}
+依頼番号: {transaction_id}
+"""
+        await self.send_email_to_all_admins(admin_subject, admin_body)
+
+        return success
+
     async def send_transaction_cancel_email(
         self,
         user_email: str,

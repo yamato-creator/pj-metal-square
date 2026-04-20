@@ -84,7 +84,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   const menuItems = [
     { path: '/dashboard', emoji: <img src="/icons/home-icon.png" alt="トップ" className="w-5 h-5" />, label: 'トップ' },
-    { path: '/cash-transaction', emoji: <img src="/icons/yen-icon.png" alt="現金決済" className="w-5 h-5" />, label: '現金決済' },
+    { path: '/cash-transaction', emoji: <img src="/icons/yen-icon.png" alt="見積もり依頼" className="w-5 h-5" />, label: '見積もり依頼' },
     { path: '/withdraw-transaction', emoji: <img src="/icons/gold-icon.png" alt="現物返却" className="w-5 h-5" />, label: '現物返却' },
     { path: '/transaction-history', emoji: <img src="/icons/document-icon.png" alt="取引履歴" className="w-5 h-5" />, label: '取引履歴' },
     { path: '/account-settings', emoji: <img src="/icons/settings-icon.png" alt="アカウント設定" className="w-5 h-5" />, label: 'アカウント設定' },
@@ -373,7 +373,7 @@ function MainContent() {
   const handleSale = async (saleAmounts: { [key: string]: number }) => {
     const totalSaleAmount = Object.values(saleAmounts).reduce((sum, amount) => sum + amount, 0);
     if (totalSaleAmount <= 0) {
-      alert('売却金額が0円以上である必要があります');
+      alert('売却希望量を入力してください');
       return null;
     }
 

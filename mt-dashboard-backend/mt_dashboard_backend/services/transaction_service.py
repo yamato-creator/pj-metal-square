@@ -178,6 +178,8 @@ class TransactionService(SheetsBase):
             # 会社名は常に「スクエア合同会社」に設定
             company_name = "スクエア合同会社"
 
+            status = transaction_data.get('status', '申込済')
+
             values = [[
                 transaction_id,                                    # 取引ID
                 transaction_data.get('user_id'),                   # ユーザーID
@@ -186,7 +188,7 @@ class TransactionService(SheetsBase):
                 transaction_data.get('weight_g'),                  # 取引量(g)
                 transaction_data.get('unit_price'),                # 単価(ユーザー報告値)
                 str(float(transaction_data.get('total_amount', 0))), # 合計金額
-                '申込済',                                          # ステータス
+                status,                                            # ステータス
                 transaction_datetime,                             # 取引日時
                 company_name                                      # CP(取引相手先)
             ]]

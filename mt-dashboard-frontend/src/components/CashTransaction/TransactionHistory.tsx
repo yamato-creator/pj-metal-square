@@ -189,8 +189,9 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 {/* 取引種別を表示 */}
                 {transaction.transaction_type && (
                   <div className={`font-bold ${
-                    transaction.transaction_type === '売却' ? 'text-red-600' : 
-                    transaction.transaction_type === '預入' ? 'text-blue-600' : 
+                    transaction.transaction_type === '売却' ? 'text-red-600' :
+                    transaction.transaction_type === '見積依頼' ? 'text-amber-600' :
+                    transaction.transaction_type === '預入' ? 'text-blue-600' :
                     'text-green-600'
                   }`}>
                     {transaction.transaction_type}
@@ -205,11 +206,12 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 {/* 預入や現物返却の場合は合計金額を表示しない */}
                 {transaction.transaction_type !== '預入' && transaction.transaction_type !== '現物返却' && (
                   <span className="font-bold">
-                    合計: {transaction.total.toLocaleString()}円
+                    {transaction.transaction_type === '見積依頼' ? '参考金額(税抜): ' : '合計: '}
+                    {(transaction.transaction_type === '見積依頼' ? transaction.subtotal : transaction.total).toLocaleString()}円
                   </span>
                 )}
-                {/* PDF出力ボタン: 預入とキャンセル済み以外、かつ取引日の24時を過ぎた場合に表示 */}
-                {transaction.transaction_type !== '預入' && transaction.status !== "取消" && !isTransactionToday(transaction.date) && (
+                {/* PDF出力ボタン: 売却の完了取引のみ、かつ取引日の24時を過ぎた場合に表示 */}
+                {transaction.transaction_type === '売却' && transaction.status !== "取消" && !isTransactionToday(transaction.date) && (
                   <TransactionPDFGenerator
                     transaction={transaction}
                     className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
@@ -217,10 +219,9 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                     userName={user?.user_name}
                   />
                 )}
-                {/* 当日24時まで且つステータスが「取消」でない場合、且つ預入でない場合のみキャンセルボタンを表示 */}
-                {/* キャンセルボタン表示条件: ENABLE_CANCEL_BUTTON && isTransactionToday(transaction.date) && transaction.status !== "取消" && transaction.transaction_type !== '預入' */}
-                {ENABLE_CANCEL_BUTTON && isTransactionToday(transaction.date) && transaction.status !== "取消" && transaction.transaction_type !== '預入' && (
-                  <button 
+                {/* 当日24時まで且つステータスが「取消」でない場合、且つ売却のみキャンセルボタンを表示 */}
+                {ENABLE_CANCEL_BUTTON && isTransactionToday(transaction.date) && transaction.status !== "取消" && transaction.transaction_type === '売却' && (
+                  <button
                     onClick={() => showCancelConfirmation(transaction.id)}
                     className="bg-gray-600 text-white px-3 py-1 text-sm rounded hover:bg-gray-700"
                     disabled={isLoading}
@@ -273,18 +274,26 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 </div>
               ) : (
                 <div>
-                  <div className="mb-2 text-left max-w-2xl">
-                    <div>小計 {transaction.subtotal.toLocaleString()}円</div>
-                    <div>適用税率 10% 消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
-                  </div>
-                  
+                  {transaction.transaction_type !== '見積依頼' && (
+                    <div className="mb-2 text-left max-w-2xl">
+                      <div>小計 {transaction.subtotal.toLocaleString()}円</div>
+                      <div>適用税率 10% 消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
+                    </div>
+                  )}
+
                   <table className="w-full max-w-2xl mx-auto tabular-nums">
                     <thead>
                       <tr>
                         <th className="text-left">金属名</th>
-                        <th className="text-right">売却量</th>
-                        <th className="text-right">買取価格</th>
-                        <th className="text-right">金額</th>
+                        <th className="text-right">
+                          {transaction.transaction_type === '見積依頼' ? '希望量' : '売却量'}
+                        </th>
+                        <th className="text-right">
+                          {transaction.transaction_type === '見積依頼' ? '参考価格' : '買取価格'}
+                        </th>
+                        <th className="text-right">
+                          {transaction.transaction_type === '見積依頼' ? '参考金額' : '金額'}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
