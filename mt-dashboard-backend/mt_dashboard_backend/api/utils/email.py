@@ -1,37 +1,48 @@
 import httpx
 import logging
 import math
+import os
 from typing import Optional
 import pandas as pd
 
 class EmailSender:
     """メール送信を担当するユーティリティクラス"""
-    
+
     def __init__(self):
         self.email_function_url = "https://asia-northeast1-astute-maxim-457911-g9.cloudfunctions.net/send_email_http_square"
         self.headers = {"Content-Type": "application/json"}
         # 複数の管理者メールアドレスを配列で定義
         self.admin_emails = [
             "precious.metal.mine@gmail.com",
-            "square.hirata@gmail.com", 
+            "square.hirata@gmail.com",
             "square_hoshi@outlook.jp",
             "kobesendaikanto@outlook.jp"
         ]
-        
+
 
     async def send_email(self, to: str, subject: str, body: str) -> bool:
         """
-        メールを送信する
-        
+        メールを送信する。
+        EMAIL_TEST_REDIRECT 環境変数が設定されていればその宛先に強制リダイレクト。
+        E2Eテスト時に本番ユーザー/管理者へ誤送信しないためのセーフティネット。
+
         Args:
             to (str): 送信先メールアドレス
             subject (str): メールの件名
             body (str): メール本文
-            
+
         Returns:
             bool: 送信成功時True、失敗時False
         """
         try:
+            test_redirect = os.environ.get("EMAIL_TEST_REDIRECT", "").strip()
+            if test_redirect:
+                original_to = to
+                to = test_redirect
+                subject = f"[E2E→{original_to}] {subject}"
+                body = f"※ テストモード: 本来の宛先は {original_to} です\n---\n{body}"
+                logging.info(f"EMAIL_TEST_REDIRECT 有効: {original_to} → {to}")
+
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     self.email_function_url,
@@ -47,7 +58,7 @@ class EmailSender:
                 else:
                     logging.error(f"メール送信失敗: ステータスコード={response.status_code}")
                     return False
-                
+
         except Exception as e:
             logging.error(f"メール送信エラー: {str(e)}")
             return False
