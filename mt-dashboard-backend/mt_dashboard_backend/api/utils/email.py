@@ -9,7 +9,11 @@ class EmailSender:
     """メール送信を担当するユーティリティクラス"""
 
     def __init__(self):
-        self.email_function_url = "https://asia-northeast1-astute-maxim-457911-g9.cloudfunctions.net/send_email_http_square"
+        self.email_function_url = os.environ.get(
+            "EMAIL_FUNCTION_URL",
+            "https://asia-northeast1-astute-maxim-457911-g9.cloudfunctions.net/send_email_http_square"
+        )
+        self.email_shared_secret = os.environ.get("EMAIL_SHARED_SECRET", "").strip()
         self.headers = {"Content-Type": "application/json"}
         # 複数の管理者メールアドレスを配列で定義
         self.admin_emails = [
@@ -43,21 +47,28 @@ class EmailSender:
                 body = f"※ テストモード: 本来の宛先は {original_to} です\n---\n{body}"
                 logging.info(f"EMAIL_TEST_REDIRECT 有効: {original_to} → {to}")
 
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            payload = {"to": to, "subject": subject, "body": body}
+            if self.email_shared_secret:
+                payload["secret"] = self.email_shared_secret
+
+            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
                 response = await client.post(
                     self.email_function_url,
-                    json={
-                        "to": to,
-                        "subject": subject,
-                        "body": body
-                    },
+                    json=payload,
                     headers=self.headers
                 )
-                if response.status_code == 200:
-                    return True
-                else:
+                if response.status_code != 200:
                     logging.error(f"メール送信失敗: ステータスコード={response.status_code}")
                     return False
+                # GAS Web App は失敗時も 200 で {ok: false, error: ...} を返すため body も確認
+                try:
+                    data = response.json()
+                except Exception:
+                    data = None  # 旧 Cloud Function は plain text を返すので JSON でなくても OK
+                if isinstance(data, dict) and data.get("ok") is False:
+                    logging.error(f"メール送信失敗: {data.get('error')}")
+                    return False
+                return True
 
         except Exception as e:
             logging.error(f"メール送信エラー: {str(e)}")
