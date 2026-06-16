@@ -1,17 +1,24 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 import logging
 import uuid
 from typing import Dict
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from ...models.user import UserRegister, UserLogin
 from ...services.user_service import UserService
 from ..utils.email import EmailSender
+from ..utils.password import verify_password, hash_password, needs_rehash
+
+# ブルートフォース対策：登録・ログインは IP あたり 5回/分 まで
+limiter = Limiter(key_func=get_remote_address)
 
 # ルーターの設定
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("/register")
-async def register_user(user: UserRegister):
+@limiter.limit("5/minute")
+async def register_user(request: Request, user: UserRegister):
     """
     新規ユーザー登録
     """
@@ -77,7 +84,8 @@ async def register_user(user: UserRegister):
         raise HTTPException(status_code=500, detail="ユーザー登録に失敗しました")
 
 @router.post("/login")
-async def login_user(user: UserLogin):
+@limiter.limit("10/minute")
+async def login_user(request: Request, user: UserLogin):
     """
     ユーザーログイン
     """
@@ -102,12 +110,24 @@ async def login_user(user: UserLogin):
                 detail="このアカウントは退会済みです"
             )
 
-        # パスワード検証
-        if user_data['password'].strip() != user.password.strip():
+        # パスワード検証（bcrypt と平文の両対応）。
+        # 既存ユーザーは平文保管のため、verify_password で平文一致 → 自動でハッシュ化に移行。
+        stored_password = user_service.fetch_password_hash(user.user_id)
+        if not verify_password(user.password, stored_password):
             raise HTTPException(
                 status_code=401,
                 detail="ユーザーIDまたはパスワードが間違っています"
             )
+
+        # 平文保管だった場合は即座にハッシュ化して保存（移行マイグレ）。
+        if needs_rehash(stored_password):
+            try:
+                new_hash = hash_password(user.password)
+                user_service.update_user_password_hash(user.user_id, new_hash)
+                logger.info(f"パスワードを bcrypt 化（ログイン契機の自動マイグレ）: {user.user_id}")
+            except Exception as mig_err:
+                # マイグレーション失敗はログインを止めない（次回ログインで再試行）
+                logger.warning(f"パスワードハッシュ移行に失敗: {mig_err}")
 
         logger.info(f"ログイン成功: {user_data['user_id']}")
         return {

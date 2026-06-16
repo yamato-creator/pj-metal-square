@@ -5,6 +5,9 @@ import os
 from typing import Optional
 import pandas as pd
 
+from .time import jst_str
+
+
 class EmailSender:
     """メール送信を担当するユーティリティクラス"""
 
@@ -14,6 +17,13 @@ class EmailSender:
             "https://asia-northeast1-astute-maxim-457911-g9.cloudfunctions.net/send_email_http_square"
         )
         self.email_shared_secret = os.environ.get("EMAIL_SHARED_SECRET", "").strip()
+        # 既定の Cloud Function は secret 検証ありのため、secret が空だと 401 になる。
+        # 警告だけ出して動作はそのまま（GAS Web App に切替時は EMAIL_SHARED_SECRET を必ず設定すること）。
+        if not self.email_shared_secret:
+            logging.warning(
+                "EMAIL_SHARED_SECRET が未設定です。EMAIL_FUNCTION_URL が secret 検証を要求するエンドポイント"
+                "（GAS Web App 等）の場合、メール送信が失敗します。"
+            )
         self.headers = {"Content-Type": "application/json"}
         # 複数の管理者メールアドレスを配列で定義
         self.admin_emails = [
@@ -228,7 +238,7 @@ https://www.preciousmetalmine.com/
         total: int
     ) -> bool:
         """売却完了メールを送信"""
-        sale_datetime = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+        sale_datetime = jst_str()
         subject = "貴金属売却完了のお知らせ"
         body = f"""
 貴金属の売却が完了しましたのでお知らせいたします。
@@ -276,7 +286,7 @@ https://www.preciousmetalmine.com/
         transaction_id: str,
     ) -> bool:
         """売却見積もり依頼の通知メール（ユーザー受付 + スクエア管理者通知）"""
-        request_datetime = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+        request_datetime = jst_str()
 
         # ユーザー向け: 受付完了通知
         user_subject = "売却見積もり依頼を受け付けました"
@@ -326,7 +336,7 @@ Precious Metal Mineをご利用いただきありがとうございます。
         transaction_date: str
     ) -> bool:
         """取引キャンセル完了メールを送信"""
-        cancel_datetime = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+        cancel_datetime = jst_str()
         subject = "貴金属売却取引キャンセル完了のお知らせ"
         body = f"""
 貴金属の売却取引がキャンセルされましたのでお知らせいたします。
@@ -367,7 +377,7 @@ Precious Metal Mineをご利用いただきありがとうございます。
         deposit_details: str
     ) -> bool:
         """預入完了メールを送信"""
-        current_datetime = pd.Timestamp.now().strftime('%Y年%m月%d日 %H:%M:%S')
+        current_datetime = jst_str('%Y年%m月%d日 %H:%M:%S')
         subject = "貴金属預入完了のお知らせ"
         body = f"""
 貴金属の預入処理が完了しましたのでお知らせいたします。
@@ -403,7 +413,7 @@ Precious Metal Mineをご利用いただきありがとうございます。
         withdraw_details: str
     ) -> bool:
         """現物返却完了メールを送信"""
-        current_datetime = pd.Timestamp.now().strftime('%Y年%m月%d日 %H:%M:%S')
+        current_datetime = jst_str('%Y年%m月%d日 %H:%M:%S')
         subject = "貴金属現物返却完了のお知らせ"
         body = f"""
 貴金属の現物返却処理が完了しましたのでお知らせいたします。

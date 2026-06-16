@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from datetime import datetime, timedelta
 from .base.sheets_base import SheetsBase
+from ..api.utils.time import JST, jst_str, jst_compact, now_jst
 import re
 import math
 
@@ -167,10 +168,10 @@ class TransactionService(SheetsBase):
             transaction_id = transaction_data.get('transaction_id')
             if not transaction_id:
                 # 提供されていない場合のみ新しく生成
-                transaction_id = f"TRS{datetime.now().strftime('%Y%m%d%H%M%S')}"
-            
-            # 必ず現在時刻を使用して日時を記録
-            transaction_datetime = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+                transaction_id = f"TRS{jst_compact()}"
+
+            # 必ず現在時刻（JST）を使用して日時を記録
+            transaction_datetime = jst_str('%Y/%m/%d %H:%M:%S')
 
             # 金属名を日本語に変換
             metal_type_jp = self._get_metal_name_jp(transaction_data.get('metal_type'))
@@ -316,10 +317,10 @@ class TransactionService(SheetsBase):
             bool: 48時間以内ならTrue、それ以外はFalse
         """
         try:
-            # 文字列を日時オブジェクトに変換
-            transaction_date = datetime.strptime(date_string, '%Y/%m/%d %H:%M:%S')
-            # 現在時刻
-            now = datetime.now()
+            # 文字列を日時オブジェクトに変換（JSTを付与）
+            transaction_date = datetime.strptime(date_string, '%Y/%m/%d %H:%M:%S').replace(tzinfo=JST)
+            # 現在時刻（JST）
+            now = now_jst()
             # 差分を計算
             time_diff = now - transaction_date
             # 48時間（2日）以内かどうかを判定
@@ -330,30 +331,31 @@ class TransactionService(SheetsBase):
 
     def is_cancelable(self, date_string: str) -> bool:
         """
-        取引がキャンセル可能かどうかを判定 (取引日の23:59:59まで)
-        
+        取引がキャンセル可能かどうかを判定 (取引日の23:59:59 JSTまで)
+
         Args:
-            date_string (str): 取引日時の文字列 (形式: '%Y/%m/%d %H:%M:%S')
-            
+            date_string (str): 取引日時の文字列 (形式: '%Y/%m/%d %H:%M:%S' JST想定)
+
         Returns:
             bool: キャンセル可能ならTrue、それ以外はFalse
         """
         try:
-            # 文字列を日時オブジェクトに変換
-            transaction_date = datetime.strptime(date_string, '%Y/%m/%d %H:%M:%S')
-            
-            # 取引日の23:59:59を計算
+            # 文字列を日時オブジェクトに変換（JSTを付与）
+            transaction_date = datetime.strptime(date_string, '%Y/%m/%d %H:%M:%S').replace(tzinfo=JST)
+
+            # 取引日の23:59:59（JST）を計算
             end_of_day = datetime(
                 transaction_date.year,
                 transaction_date.month,
                 transaction_date.day,
-                23, 59, 59
+                23, 59, 59,
+                tzinfo=JST,
             )
-            
-            # 現在時刻
-            now = datetime.now()
-            
-            # 取引日の23:59:59までかどうかを判定
+
+            # 現在時刻（JST）
+            now = now_jst()
+
+            # 取引日の23:59:59 (JST) までかどうかを判定
             return now <= end_of_day
         except Exception as e:
             logging.error(f"キャンセル可能判定エラー: {str(e)}")

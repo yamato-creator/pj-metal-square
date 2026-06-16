@@ -20,6 +20,12 @@ pandas-gbq = "^0.24.0"
 httpx = "^0.28.1"
 google-auth-oauthlib = "^1.2.1"
 google-auth-httplib2 = "^0.2.0"
+bcrypt = "^4.2.0"
+slowapi = "^0.1.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -7,6 +7,7 @@ from ...services.transaction_service import TransactionService
 from ...services.asset_service import AssetService
 from ..utils.auth import verify_api_key
 from ..utils.email import EmailSender
+from ..utils.time import jst_str, jst_compact
 
 # ルーターの設定
 router = APIRouter()
@@ -67,32 +68,58 @@ async def cancel_transaction(
             )
         
         # 4. 取引ステータスをすべて「取消」に更新
+        #    Sheets API はアトミックでないため、失敗時に成功済み分を逆操作（ベストエフォート）
+        status_rollback = []  # (row_number, original_status) のリスト
         for transaction in all_transactions:
+            original_status = transaction.get("status")
             if not transaction_service.update_transaction_status(transaction_id, transaction["row_number"], "取消"):
+                # ロールバック：既に「取消」に変えてしまったレコードを元に戻す
+                for row_no, orig in reversed(status_rollback):
+                    try:
+                        transaction_service.update_transaction_status(transaction_id, row_no, orig)
+                    except Exception as rb_err:
+                        logger.error(f"ステータス ロールバック失敗 row={row_no}: {rb_err}")
                 raise HTTPException(
                     status_code=500,
                     detail="取引ステータスの更新に失敗しました"
                 )
-        
+            status_rollback.append((transaction["row_number"], original_status))
+
+        def _rollback_all(asset_rollback):
+            """ステータスと資産の両方をベストエフォートで元に戻す。"""
+            for row_no, orig in reversed(status_rollback):
+                try:
+                    transaction_service.update_transaction_status(transaction_id, row_no, orig)
+                except Exception as rb_err:
+                    logger.error(f"ステータス ロールバック失敗 row={row_no}: {rb_err}")
+            for u_id, m_type, original_amount in reversed(asset_rollback):
+                try:
+                    asset_service.update_asset_after_sale(u_id, m_type, original_amount)
+                except Exception as rb_err:
+                    logger.error(f"資産 ロールバック失敗 metal={m_type}: {rb_err}")
+
         # 5. 各金属の資産を元に戻す
         transaction_details_list = []
+        asset_rollback = []  # (user_id, metal_type, original_amount) のリスト
         for transaction in all_transactions:
             metal_type = transaction["metal_type"]
             amount = float(transaction["weight_g"])
-            
+
             # 現在の保有量を取得
             current_assets = asset_service.fetch_user_assets_with_validation(current_user["user_id"])
             if current_assets is None:
+                _rollback_all(asset_rollback)
                 raise HTTPException(
                     status_code=401,
                     detail="このユーザーは退会済みです"
                 )
-            
+
             current_asset = next(
                 (asset for asset in current_assets if asset["metal_type"] == metal_type),
                 None
             )
-            
+
+            original_amount = float(current_asset["weight_g"]) if current_asset else 0.0
             if not current_asset:
                 # 資産がない場合は新規作成
                 new_amount = amount
@@ -100,22 +127,24 @@ async def cancel_transaction(
                 # 取引タイプに基づいて資産を更新
                 if transaction["transaction_type"] == "預入":
                     # 預入取引の場合はキャンセル時に減算
-                    new_amount = float(current_asset["weight_g"]) - amount
+                    new_amount = original_amount - amount
                 else:
                     # 売却・現物返却取引の場合はキャンセル時に加算
-                    new_amount = float(current_asset["weight_g"]) + amount
-            
+                    new_amount = original_amount + amount
+
             # 資産を更新
             if not asset_service.update_asset_after_sale(
                 current_user["user_id"],
                 metal_type,
                 new_amount
             ):
+                _rollback_all(asset_rollback)
                 raise HTTPException(
                     status_code=500,
                     detail=f"{metal_type}の資産更新に失敗しました"
                 )
-            
+            asset_rollback.append((current_user["user_id"], metal_type, original_amount))
+
             # 取引詳細を記録（メール用）
             transaction_details_list.append(f"{metal_type}: {amount:.2f}g")
         
@@ -142,10 +171,11 @@ async def cancel_transaction(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"取引キャンセルエラー: {str(e)}")
+        logger.error(f"取引キャンセルエラー: {e}")
+        # クライアントには内部エラー詳細を返さない（情報漏洩対策）
         raise HTTPException(
             status_code=500,
-            detail=f"取引キャンセルに失敗しました: {str(e)}"
+            detail="取引キャンセルに失敗しました"
         )
 
 @router.post("/sale")
@@ -160,7 +190,7 @@ async def create_sale_quote_request(
         email_sender = EmailSender()
 
         # 共通の取引IDを生成（全ての金属で使用）
-        transaction_id = f"TRS{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+        transaction_id = f"TRS{jst_compact()}"
 
         # 1. 保有量チェックと見積もり依頼記録（資産更新はしない）
         current_assets = asset_service.fetch_user_assets_with_validation(current_user["user_id"])
@@ -245,7 +275,7 @@ async def create_sale_quote_request(
         logging.error(f"見積もり依頼エラー: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"見積もり依頼の処理に失敗しました: {str(e)}"
+            detail="見積もり依頼の処理に失敗しました"
         )
 
 @router.post("/deposit")
@@ -260,7 +290,7 @@ async def create_deposit_transaction(
         email_sender = EmailSender()
 
         # 共通の取引IDを生成（全ての金属で使用）
-        transaction_id = f"TRS{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+        transaction_id = f"TRS{jst_compact()}"
 
         # 1. 各金属の取引を記録と資産更新
         for metal in transaction_data.metals:
@@ -310,8 +340,8 @@ async def create_deposit_transaction(
                     )
             else:
                 # 資産がない場合は新規作成
-                asset_id = f"AST{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}{current_user['user_id'][-4:]}"
-                current_time = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+                asset_id = f"AST{jst_compact()}{current_user['user_id'][-4:]}"
+                current_time = jst_str()
                 
                 asset_values = [
                     asset_id,
@@ -359,7 +389,7 @@ async def create_deposit_transaction(
         logger.error(f"預入処理エラー: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"預入処理に失敗しました: {str(e)}"
+            detail="預入処理に失敗しました"
         )
 
 @router.post("/withdraw")
@@ -374,7 +404,7 @@ async def create_withdraw_transaction(
         email_sender = EmailSender()
 
         # 共通の取引IDを生成（全ての金属で使用）
-        transaction_id = f"TRS{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+        transaction_id = f"TRS{jst_compact()}"
 
         # 1. 各金属の取引を記録と資産更新
         for metal in transaction_data.metals:
@@ -469,5 +499,5 @@ async def create_withdraw_transaction(
         logger.error(f"現物返却処理エラー: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"現物返却処理に失敗しました: {str(e)}"
+            detail="現物返却処理に失敗しました"
         )

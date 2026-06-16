@@ -32,11 +32,13 @@ async def verify_api_key(api_key: str = Security(API_KEY_HEADER)) -> Dict:
                     is_deleted = is_deleted.strip().lower() == 'true'
                 
                 if not is_deleted:
+                    # password はレスポンスに乗せると外部漏洩リスクがあるため除外する。
+                    # 認証経路（login / verify-password / change-password）では
+                    # UserService.fetch_password_hash() で必要時のみ取得する。
                     return {
                         "user_id": row[0],
                         "user_name": row[1],
                         "email": row[2],
-                        "password": row[3]
                     }
                 else:
                     # 退会済みユーザーの場合

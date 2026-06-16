@@ -1,5 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from .api.routes import auth_routes, user_routes, metal_routes, transaction_routes, time_restriction_routes
 import logging
 import os
@@ -12,8 +16,13 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# レート制限（slowapi）。デフォルトは緩め、認証系は各ルートで個別に厳しく付与する。
+limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
+
 # FastAPIアプリケーションの初期化
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # 環境変数からCORSの許可オリジンを取得（カンマ区切りの文字列を想定）
 # デフォルトはローカル開発用

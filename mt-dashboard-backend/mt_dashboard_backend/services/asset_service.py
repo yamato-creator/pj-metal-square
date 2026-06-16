@@ -2,6 +2,7 @@ from typing import Dict, List, Optional
 import logging
 import pandas as pd
 from .base.sheets_base import SheetsBase
+from ..api.utils.time import jst_str
 
 class AssetService(SheetsBase):
     """
@@ -62,7 +63,7 @@ class AssetService(SheetsBase):
             bool: 更新成功時True、失敗時False
         """
         try:
-            current_time = pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+            current_time = jst_str()
             values = self._get_sheet_data('assets!A:E')
             
             if not values:

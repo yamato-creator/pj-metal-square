@@ -10,6 +10,7 @@ import {
 } from 'react-router-dom';
 import { Login } from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { authStorage } from './utils/authStorage';
 import { useTransactions } from './hooks/useTransactions';
 import theme from './theme/theme';
 import AssetStatus from './components/AssetStatus';
@@ -227,8 +228,8 @@ function MainContent() {
   const fetchAssets = async () => {
     setIsLoadingAssets(true);
     try {
-      const authData = localStorage.getItem('auth');
-      const userId = authData ? JSON.parse(authData).user.user_id : null;
+      const authData = authStorage.get<any>();
+      const userId = authData?.user?.user_id ?? null;
       
       if (!userId) {
         return;
@@ -519,10 +520,7 @@ function MainContent() {
       };
 
       const depositData = {
-        user_id: (() => {
-          const auth = localStorage.getItem('auth');
-          return auth ? JSON.parse(auth).user.user_id : '';
-        })(),
+        user_id: authStorage.get<any>()?.user?.user_id ?? '',
         metals: metals
           .filter(metal => depositAmounts[metal.name] > 0)
           .map(metal => ({
@@ -537,10 +535,7 @@ function MainContent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': (() => {
-            const auth = localStorage.getItem('auth');
-            return auth ? JSON.parse(auth).user.api_key : '';
-          })()
+          'X-API-Key': authStorage.get<any>()?.user?.api_key ?? ''
         },
         body: JSON.stringify(depositData)
       });
@@ -605,10 +600,7 @@ function MainContent() {
       };
 
       const withdrawData = {
-        user_id: (() => {
-          const auth = localStorage.getItem('auth');
-          return auth ? JSON.parse(auth).user.user_id : '';
-        })(),
+        user_id: authStorage.get<any>()?.user?.user_id ?? '',
         metals: metals
           .filter(metal => withdrawAmounts[metal.name] > 0)
           .map(metal => ({
@@ -623,10 +615,7 @@ function MainContent() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': (() => {
-            const auth = localStorage.getItem('auth');
-            return auth ? JSON.parse(auth).user.api_key : '';
-          })()
+          'X-API-Key': authStorage.get<any>()?.user?.api_key ?? ''
         },
         body: JSON.stringify(withdrawData)
       });

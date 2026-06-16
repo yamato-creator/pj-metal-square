@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from datetime import datetime, timezone, timedelta
+import os
 
 # ルーターの設定
 router = APIRouter()
@@ -48,5 +49,8 @@ async def check_access_time():
         "allowed_hours": "10:00:00-24:00:00 (JST)",
         "restricted_hours": "00:00:01-09:59:59 (JST)",
         "message": "アクセス可能" if is_allowed else "アクセス制限時間です",
-        "environment": "production" if utc_now.hour != datetime.now().hour else "development"
+        # 環境判定は ENVIRONMENT 環境変数を優先、未設定なら "production" 固定
+        # （旧実装は naive datetime.now() でローカル時刻を判定していたため、開発機が
+        # たまたまUTC設定だと誤判定する不安定な実装だった）
+        "environment": os.environ.get("ENVIRONMENT", "production")
     } 

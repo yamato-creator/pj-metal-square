@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { clearAllStorage } from '../utils/storageUtils';
+import { authStorage, migrateLegacyAuthFromLocalStorage } from '../utils/authStorage';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -15,81 +16,17 @@ interface AuthContextType extends AuthState {
   logout: () => void;
 }
 
-const safeLocalStorage = {
-  set: (key: string, value: any) => {
-    try {
-      const stringValue = JSON.stringify(value);
-      
-      localStorage.setItem(key, stringValue);
-      
-      const savedValue = localStorage.getItem(key);
-      
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: key,
-        newValue: stringValue,
-        oldValue: null,
-        storageArea: localStorage
-      }));
-      
-      return true;
-    } catch (error) {
-      console.error('Local Storage Set Error:', error);
-      return false;
-    }
-  },
-
-  get: (key: string) => {
-    try {
-      const value = localStorage.getItem(key);
-      
-      if (value) {
-        const parsed = JSON.parse(value);
-        return parsed;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Local Storage Get Error:', error);
-      return null;
-    }
-  }
-};
-
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-
+  // 初回マウント時に旧 localStorage 保管の auth を sessionStorage に移行する。
+  // 既存ユーザーがアップデート後に強制ログアウトされないようにする。
   useEffect(() => {
-    const debugStorage = () => {
-      const authData = localStorage.getItem('auth');
-      
-      if (authData) {
-        try {
-          JSON.parse(authData);
-        } catch (e) {
-          console.error('Auth Data Parse Error:', e);
-        }
-      }
-    };
-
-    const storageEventHandler = (event: StorageEvent) => {
-      if (event.key === 'auth') {
-      }
-    };
-
-    debugStorage();
-    const interval = setInterval(debugStorage, 2000);
-    window.addEventListener('storage', storageEventHandler);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('storage', storageEventHandler);
-    };
+    migrateLegacyAuthFromLocalStorage();
   }, []);
 
   const [authState, setAuthState] = useState<AuthState>(() => {
-    const savedAuth = safeLocalStorage.get('auth');
-    
+    const savedAuth = authStorage.get<AuthState>();
     return savedAuth || {
       isAuthenticated: false,
       user: null
@@ -111,6 +48,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw new Error(errorData.detail || 'ユーザーIDまたはパスワードが間違っています');
           case 403:
             throw new Error('このアカウントは退会済みです');
+          case 429:
+            throw new Error('ログイン試行回数が多すぎます。しばらくしてから再度お試しください');
           default:
             throw new Error(errorData.detail || 'ログインに失敗しました');
         }
@@ -118,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const data = await response.json();
 
-      const newAuthState = {
+      const newAuthState: AuthState = {
         isAuthenticated: true,
         user: {
           ...data.data.user,
@@ -126,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       };
 
-      const saveSuccess = safeLocalStorage.set('auth', newAuthState);
+      const saveSuccess = authStorage.set(newAuthState);
 
       if (saveSuccess) {
         setAuthState(newAuthState);
@@ -137,7 +76,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     } catch (error) {
       console.error('Login Error:', error);
-      console.error('Stack Trace:', (error as Error).stack);
       throw error;
     }
   };
@@ -154,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('登録に失敗しました');
       }
 
-      const data = await response.json();
+      await response.json();
       return true;
     } catch (error) {
       console.error('登録エラー:', error);
@@ -178,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('パスワード更新に失敗しました');
       }
 
-      const data = await response.json();
+      await response.json();
       return true;
 
     } catch (error) {
@@ -202,10 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('メールアドレス更新に失敗しました');
       }
 
-      const data = await response.json();
+      await response.json();
       const newUserName = newEmail.split('@')[0];
-      
-      const newAuthState = {
+
+      const newAuthState: AuthState = {
         ...authState,
         user: {
           ...authState.user,
@@ -213,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user_name: newUserName
         }
       };
-      safeLocalStorage.set('auth', newAuthState);
+      authStorage.set(newAuthState);
       setAuthState(newAuthState);
       return true;
 
@@ -224,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const getAuthHeaders = () => {
-    const auth = safeLocalStorage.get('auth');
+    const auth = authStorage.get<AuthState>();
     return {
       'Content-Type': 'application/json',
       'X-API-Key': auth?.user?.api_key || ''
@@ -233,10 +171,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     try {
+      authStorage.clear();
       clearAllStorage().catch(error => {
         console.error('ストレージクリア中にエラーが発生しました:', error);
       });
-      
+
       setAuthState({
         isAuthenticated: false,
         user: null
@@ -245,9 +184,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('ログアウト中にエラーが発生しました:', error);
     }
   };
-
-  useEffect(() => {
-  }, [authState]);
 
   return (
     <AuthContext.Provider value={{ ...authState, login, register, updatePassword, updateEmail, getAuthHeaders, logout }}>

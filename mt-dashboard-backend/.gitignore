@@ -1,0 +1,28 @@
+# Credentials / Secrets
+credentials.json
+*.json.local
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual envs
+.venv/
+venv/
+.env_test/
+
+# pytest
+.pytest_cache/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# OS
+.DS_Store

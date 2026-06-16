@@ -123,5 +123,5 @@ async def get_user_assets(
         logger.error(f"資産情報取得エラー: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail=f"資産情報の取得に失敗しました: {str(e)}"
+            detail="資産情報の取得に失敗しました"
         )
