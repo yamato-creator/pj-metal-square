@@ -424,7 +424,6 @@ async def create_withdraw_transaction(
 
 
 async def _create_withdraw_transaction(transaction_data: WithdrawCreate, current_user: dict):
-    """現物返却取引を作成"""
     try:
         transaction_service = TransactionService()
         asset_service = AssetService()
