@@ -1,10 +1,16 @@
-"""send_sale_quote_request_email の挙動テスト。"""
+"""send_sale_quote_request_email の挙動テスト。
+
+仕様: 見積書 ⑩
+  「スクエア様（管理者）にのみ見積もり依頼の通知メールを送信する
+   （ユーザーへのメール送信なし）」
+"""
 import pytest
 from unittest.mock import AsyncMock, patch
 
 
 @pytest.mark.asyncio
-async def test_quote_request_email_sends_to_user_and_admins():
+async def test_quote_request_email_only_sends_to_admins_not_user():
+    """売却見積依頼は管理者のみに送信し、ユーザーには送らない（仕様 ⑩）。"""
     from mt_dashboard_backend.api.utils.email import EmailSender
 
     sender = EmailSender()
@@ -20,18 +26,15 @@ async def test_quote_request_email_sends_to_user_and_admins():
         )
         assert result is True
 
-        # ユーザーへ受付メール
-        mock_user_send.assert_awaited_once()
-        user_args = mock_user_send.call_args.args
-        assert user_args[0] == "u@example.com"
-        assert "見積もり依頼" in user_args[1]
-        assert "TRS20260420120000" in user_args[2]
-        assert "120,000円" in user_args[2]
+        # ユーザーへは送らない（send_email 単体は呼ばれない）
+        mock_user_send.assert_not_awaited()
 
-        # 管理者全員への通知
+        # 管理者全員への通知のみ送信
         mock_admin_send.assert_awaited_once()
         admin_args = mock_admin_send.call_args.args
         assert "見積もり依頼" in admin_args[0]
         assert "テスト太郎" in admin_args[1]
         assert "0276583112" in admin_args[1]
         assert "u@example.com" in admin_args[1]
+        assert "120,000円" in admin_args[1]
+        assert "TRS20260420120000" in admin_args[1]

@@ -26,10 +26,13 @@ def app_with_mocks(fake_user):
     from fastapi import FastAPI
     from mt_dashboard_backend.api.routes.transaction_routes import router
     from mt_dashboard_backend.api.utils.auth import verify_api_key
+    from mt_dashboard_backend.api.utils.access_time import require_business_hours
 
     app = FastAPI()
     app.include_router(router, prefix="/api/transactions")
     app.dependency_overrides[verify_api_key] = lambda: fake_user
+    # ビジネスアワー外でも単体テストは流すために noop に差し替え
+    app.dependency_overrides[require_business_hours] = lambda: None
 
     return app
 
@@ -104,7 +107,7 @@ def test_sale_records_with_quote_request_status(app_with_mocks):
 
 
 def test_sale_sends_quote_request_email(app_with_mocks, fake_user):
-    """ユーザー宛 + 管理者宛の見積もり依頼メールが呼ばれる。"""
+    """見積もり依頼メールが呼ばれる（仕様 ⑩: 管理者のみ送信、ユーザー宛は無し）。"""
     with patch("mt_dashboard_backend.api.routes.transaction_routes.AssetService") as MockAssetService, \
          patch("mt_dashboard_backend.api.routes.transaction_routes.TransactionService") as MockTransactionService, \
          patch("mt_dashboard_backend.api.routes.transaction_routes.EmailSender") as MockEmailSender:
