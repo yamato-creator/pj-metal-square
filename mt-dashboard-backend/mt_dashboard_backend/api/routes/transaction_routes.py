@@ -214,6 +214,15 @@ async def _create_sale_quote_request(transaction_data: TransactionCreate, curren
                 detail="このユーザーは退会済みです"
             )
 
+        # 既存の「見積依頼」中（未確定）の数量を金属別に合計して、二重消費を防ぐ。
+        # 例: 金 5g 保有 → 既に 4g 見積依頼中 → 残り見積可能は 1g のみ。
+        all_user_tx = transaction_service.fetch_transactions(current_user["user_id"]) or []
+        pending_by_metal: Dict[str, float] = {}
+        for tx in all_user_tx:
+            if tx.get("status") == "見積依頼":
+                for item in tx.get("items", []) or []:
+                    pending_by_metal[item["nameJp"]] = pending_by_metal.get(item["nameJp"], 0.0) + float(item["amount"])
+
         for metal in transaction_data.metals:
             current_asset = next(
                 (asset for asset in current_assets if asset["metal_type"] == metal.metal_type),
@@ -226,14 +235,16 @@ async def _create_sale_quote_request(transaction_data: TransactionCreate, curren
                     detail=f"{metal.metal_type}の保有データが見つかりません"
                 )
 
-            # 希望量が保有量以内か確認
+            # 「実保有量 − 見積依頼中の累計」が希望量以上か確認（多重消費防止）
             current_amount = float(current_asset["weight_g"])
+            already_pending = pending_by_metal.get(metal.metal_type, 0.0)
+            available = current_amount - already_pending
             requested_amount = float(metal.amount)
 
-            if current_amount < requested_amount:
+            if available < requested_amount:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"{metal.metal_type}の売却希望量が保有量を超えています"
+                    detail=f"{metal.metal_type}の売却希望量が保有量(残{available:.2f}g)を超えています"
                 )
 
             # 取引記録（ステータス「見積依頼」）

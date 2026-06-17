@@ -3,14 +3,15 @@ import logging
 import uuid
 from typing import Dict
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 from ...models.user import UserRegister, UserLogin
 from ...services.user_service import UserService
 from ..utils.email import EmailSender
 from ..utils.password import verify_password, hash_password, needs_rehash
+from ..utils.rate_limit_key import get_real_ip
 
 # ブルートフォース対策：登録・ログインは IP あたり 5回/分 まで
-limiter = Limiter(key_func=get_remote_address)
+# X-Forwarded-For を見ることで Render/Vercel 越しでも個別 IP で制限する
+limiter = Limiter(key_func=get_real_ip)
 
 # ルーターの設定
 router = APIRouter()

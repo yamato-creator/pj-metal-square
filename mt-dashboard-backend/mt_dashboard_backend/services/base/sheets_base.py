@@ -1,12 +1,41 @@
 import os
 import base64
 import json
+import time
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from typing import List, Dict, Any, Optional
+from googleapiclient.errors import HttpError
+from typing import List, Dict, Any, Optional, Callable
 import pandas as pd
 from pathlib import Path
 import logging
+
+# Sheets API は 1分300リクエスト/プロジェクト の上限。429 や瞬間的な 503 は
+# 待てば成功するため、指数バックオフでリトライする。リトライしないと
+# ログイン集中時に「無効な API キー」で全員ログイン不能になる事故が起きる。
+_RETRY_STATUS = (429, 500, 502, 503, 504)
+_MAX_RETRIES = 3
+_BASE_DELAY = 0.5
+
+
+def _retry(call: Callable):
+    """Sheets API 呼び出しを指数バックオフで再試行する。"""
+    delay = _BASE_DELAY
+    last_err = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            return call()
+        except HttpError as e:
+            status = getattr(e.resp, "status", None)
+            if status in _RETRY_STATUS and attempt < _MAX_RETRIES:
+                logging.warning(f"Sheets API {status} retry {attempt + 1}/{_MAX_RETRIES} after {delay}s")
+                time.sleep(delay)
+                delay *= 2
+                last_err = e
+                continue
+            raise
+    if last_err:
+        raise last_err
 
 # Google APIクライアントのキャッシュ警告を抑制
 logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
@@ -55,42 +84,42 @@ class SheetsBase:
             raise
 
     def _get_sheet_data(self, range_name: str) -> List[List[str]]:
-        """シートからデータを取得する共通メソッド"""
+        """シートからデータを取得する共通メソッド（429/5xxは指数バックオフリトライ）。"""
         try:
-            result = self.service.spreadsheets().values().get(
+            result = _retry(lambda: self.service.spreadsheets().values().get(
                 spreadsheetId=self.SPREADSHEET_ID,
                 range=range_name
-            ).execute()
+            ).execute())
             return result.get('values', [])
         except Exception as e:
             logging.error(f"Sheet data fetch error: {str(e)}")
             return []
 
     def append_data(self, sheet_name: str, range_suffix: str, values: List[List[Any]]) -> bool:
-        """シートにデータを追加する"""
+        """シートにデータを追加する（429/5xxは指数バックオフリトライ）。"""
         try:
             range_name = f"{sheet_name}!{range_suffix}"
-            self.service.spreadsheets().values().append(
+            _retry(lambda: self.service.spreadsheets().values().append(
                 spreadsheetId=self.SPREADSHEET_ID,
                 range=range_name,
                 valueInputOption='USER_ENTERED',
                 insertDataOption='INSERT_ROWS',
                 body={'values': values}
-            ).execute()
+            ).execute())
             return True
         except Exception as e:
             logging.error(f"Data append error: {str(e)}")
             return False
 
     def update_data(self, range_name: str, values: List[List[Any]]) -> bool:
-        """シートのデータを更新する"""
+        """シートのデータを更新する（429/5xxは指数バックオフリトライ）。"""
         try:
-            self.service.spreadsheets().values().update(
+            _retry(lambda: self.service.spreadsheets().values().update(
                 spreadsheetId=self.SPREADSHEET_ID,
                 range=range_name,
                 valueInputOption='USER_ENTERED',
                 body={'values': values}
-            ).execute()
+            ).execute())
             return True
         except Exception as e:
             logging.error(f"Data update error: {str(e)}")

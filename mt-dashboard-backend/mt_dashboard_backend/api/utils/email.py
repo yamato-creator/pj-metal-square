@@ -34,6 +34,17 @@ class EmailSender:
         ]
 
 
+    @staticmethod
+    def _strip_headers(value: str) -> str:
+        """CR/LF/NUL を除去してヘッダーインジェクションを防ぐ。
+
+        メール送信側（GAS/Cloud Function）がヘッダーに転記する設計でも、
+        ここで CRLF を落としておけば Bcc 注入や Subject 改ざんを防げる。
+        """
+        if not value:
+            return ""
+        return value.replace("\r", "").replace("\n", "").replace("\x00", "")
+
     async def send_email(self, to: str, subject: str, body: str) -> bool:
         """
         メールを送信する。
@@ -49,6 +60,10 @@ class EmailSender:
             bool: 送信成功時True、失敗時False
         """
         try:
+            # メールヘッダー injection 防止: to / subject は必ず CRLF を落とす
+            to = self._strip_headers(to)
+            subject = self._strip_headers(subject)
+
             test_redirect = os.environ.get("EMAIL_TEST_REDIRECT", "").strip()
             if test_redirect:
                 original_to = to
