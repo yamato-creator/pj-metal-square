@@ -9,8 +9,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  ChartOptions,
-  TooltipItem
+  ChartOptions
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { useMetalPriceHistory } from '../hooks/useMetalPriceHistory';

@@ -50,16 +50,6 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading, price
     return sum + Math.floor(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice));
   }, 0);
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return '0円';
-    return `${Math.floor(price).toLocaleString()} 円`;
-  };
-
-  const formatAmount = (amount: number) => {
-    if (amount === 0 && metals.every(m => m.amount === 0)) return '';
-    return `${amount.toFixed(2)} g`;
-  };
-
   if (isLoading) {
     return (
       <div className="responsive-container dashboard-component">

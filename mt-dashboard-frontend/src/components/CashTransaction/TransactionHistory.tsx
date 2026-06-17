@@ -38,14 +38,6 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
   // キャンセルボタンの表示制御設定（将来的に有効化する可能性があるため設定として分離）
   const ENABLE_CANCEL_BUTTON = false;
 
-  // 48時間以内かどうかを判定する関数
-  const isWithin48Hours = (dateString: string): boolean => {
-    const transactionDate = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60);
-    return diffInHours <= 48;
-  };
-
   // 取引日が今日かどうかを判定する関数（24時を過ぎたらPDF表示可能）
   const isTransactionToday = (dateString: string): boolean => {
     const transactionDate = new Date(dateString);

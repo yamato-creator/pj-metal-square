@@ -1,4 +1,4 @@
-import { createTheme, Theme, ThemeOptions } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
 
 // カスタムテーマの型定義
 declare module '@mui/material/styles' {

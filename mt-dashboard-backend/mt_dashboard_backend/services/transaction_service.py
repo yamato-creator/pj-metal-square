@@ -135,11 +135,12 @@ class TransactionService(SheetsBase):
                         'transaction_type': transaction_type
                     }
             
-            # 税金と合計を計算
+            # 税金と合計を計算（Decimal で誤差ゼロ、float の subtotal を文字列経由で取り込む）
+            from ..api.utils.money import calc_tax_yen
             result = []
             for transaction in grouped_by_user_time.values():
-                transaction['tax'] = math.floor(transaction['subtotal'] * 0.1)
-                transaction['total'] = transaction['subtotal'] + transaction['tax']
+                transaction['tax'] = calc_tax_yen(transaction['subtotal'])
+                transaction['total'] = int(transaction['subtotal']) + transaction['tax']
                 result.append(transaction)
             
             # 日付の降順でソート

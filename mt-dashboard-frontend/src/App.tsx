@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CssBaseline, ThemeProvider, IconButton, Drawer, List, ListItem, ListItemText, useMediaQuery, useTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider, useMediaQuery, useTheme } from '@mui/material';
 import { 
   BrowserRouter as Router, 
   Routes, 
@@ -16,17 +16,11 @@ import { useTransactions } from './hooks/useTransactions';
 import theme from './theme/theme';
 import AssetStatus from './components/AssetStatus';
 import CashTransactionForm from './components/CashTransaction/CashTransactionForm';
-import DepositTransactionForm from './components/DepositTransaction/DepositTransactionForm';
 import WithdrawTransactionForm from './components/WithdrawTransaction/WithdrawTransactionForm';
 import CompletionScreen from './components/CashTransaction/CompletionScreen';
-import DepositCompletionScreen from './components/DepositTransaction/DepositCompletionScreen';
-import DepositCompletionPage from './pages/DepositCompletionPage';
 import WithdrawCompletionPage from './pages/WithdrawCompletionPage';
-import TransactionHistory from './components/CashTransaction/TransactionHistory';
 import TransactionHistoryPage from './pages/TransactionHistoryPage';
-import { Register } from './pages/Register';
 import { AccountSettings } from './pages/AccountSettings';
-import { HomeIcon, CurrencyYenIcon, ClockIcon, CogIcon } from '@heroicons/react/24/outline';
 import { MetalPriceChart } from './components/MetalPriceChart';
 import { useAuthCheck } from './hooks/useAuthCheck';
 import LandingPage from './pages/LandingPage';
@@ -215,7 +209,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function MainContent() {
   const { getAuthHeaders, isAuthenticated } = useAuth();
   const { clearCache } = useTransactions();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [, setTransactions] = useState<Transaction[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
   const [priceUpdateTime, setPriceUpdateTime] = useState<string>('');
   const [metals, setMetals] = useState<Metal[]>([
@@ -320,6 +314,7 @@ function MainContent() {
      ]);
       fetchAssets();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   // 金属価格の取得
@@ -491,96 +486,6 @@ function MainContent() {
 
       // 取引履歴のキャッシュをクリア
       clearCache();
-    }
-  };
-
-  // 預入処理のハンドラー
-  const handleDeposit = async (depositAmounts: { [key: string]: number }) => {
-    const totalDepositAmount = Object.values(depositAmounts).reduce((sum, amount) => sum + amount, 0);
-    if (totalDepositAmount <= 0) {
-      alert('預入金額が0円以上である必要があります');
-      return null;
-    }
-
-    const depositItems = metals
-      .filter(metal => depositAmounts[metal.name] > 0)
-      .map(metal => ({
-        metalName: metal.name,
-        nameJp: metal.nameJp,
-        amount: depositAmounts[metal.name],
-        unitPrice: metal.unitPrice,
-        total: Math.floor(depositAmounts[metal.name] * metal.unitPrice)
-      }));
-
-    try {
-      const metalTypeMap: { [key: string]: string } = {
-        'Au': '金',
-        'Pd': 'パラジウム',
-        'Ag': '銀',
-        'Pt': 'プラチナ'
-      };
-
-      const depositData = {
-        user_id: authStorage.get<any>()?.user?.user_id ?? '',
-        metals: metals
-          .filter(metal => depositAmounts[metal.name] > 0)
-          .map(metal => ({
-            metal_type: metalTypeMap[metal.name],
-            amount: depositAmounts[metal.name],
-            unit_price: metal.unitPrice,
-            total: Math.floor(depositAmounts[metal.name] * metal.unitPrice)
-          }))
-      };
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/transactions/deposit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': authStorage.get<any>()?.user?.api_key ?? ''
-        },
-        body: JSON.stringify(depositData)
-      });
-
-      if (!response.ok) {
-        throw new Error(await extractApiErrorMessage(response, '預入処理に失敗しました'));
-      }
-
-      const responseData = await response.json();
-      
-      // 資産情報を更新
-      if (responseData.status === 'success' && responseData.updated_assets) {
-        setMetals(prevMetals => 
-          prevMetals.map(metal => {
-            const metalTypeMap: { [key: string]: string } = {
-              'Au': '金',
-              'Pd': 'パラジウム',
-              'Ag': '銀',
-              'Pt': 'プラチナ'
-            };
-            
-            const assetData = responseData.updated_assets.find(
-              (asset: any) => asset.metal_type === metalTypeMap[metal.name]
-            );
-            return {
-              ...metal,
-              amount: assetData ? parseFloat(assetData.weight_g) : metal.amount
-            };
-          })
-        );
-
-        // 取引履歴のキャッシュをクリア
-        clearCache();
-      }
-
-      // 取引履歴を更新
-      setTimeout(() => {
-        fetchTransactions();
-      }, 1000);
-
-      return responseData;
-    } catch (error) {
-      console.error('預入処理エラー:', error);
-      return null;
     }
   };
 

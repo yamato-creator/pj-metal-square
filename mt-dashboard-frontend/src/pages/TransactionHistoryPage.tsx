@@ -2,32 +2,6 @@ import React from 'react';
 import TransactionHistory from '../components/CashTransaction/TransactionHistory';
 import { useTransactions } from '../hooks/useTransactions';
 
-// TransactionHistoryコンポーネントで定義されているインターフェースを再利用
-interface Transaction {
-  id: string;
-  date: string;
-  company: string;
-  items: {
-    metalName: string;
-    nameJp: string;
-    amount: number;
-    unitPrice: number;
-    total: number;
-  }[];
-  subtotal: number;
-  tax: number;
-  total: number;
-  status?: string;
-  transaction_type?: string;
-}
-
-interface Metal {
-  name: string;
-  nameJp: string;
-  amount: number;
-  unitPrice: number;
-}
-
 const TransactionHistoryPage: React.FC = () => {
   const { transactions, loading, error, refetch } = useTransactions();
 

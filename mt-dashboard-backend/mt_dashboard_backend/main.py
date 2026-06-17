@@ -45,6 +45,14 @@ app.include_router(metal_routes.router, prefix="/api", tags=["metals"])
 app.include_router(transaction_routes.router, prefix="/api/transactions", tags=["transactions"])
 app.include_router(time_restriction_routes.router, prefix="/api", tags=["time-restriction"])
 
+
+@app.get("/api/healthz", tags=["health"])
+async def healthz():
+    """Render の死活監視 / uptime チェック用。認証不要・依存ゼロ・常に 200。"""
+    from .api.utils.time import jst_str
+    return {"status": "ok", "now_jst": jst_str()}
+
+
 if __name__ == "__main__":
     import uvicorn
     import os

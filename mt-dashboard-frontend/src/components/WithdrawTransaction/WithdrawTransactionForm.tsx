@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import ConfirmationModal from '../CashTransaction/ConfirmationModal';
 import { isTransactionButtonVisible } from '../../utils/timeRestriction';
 
@@ -25,8 +25,6 @@ type WithdrawMode = 'specific' | 'full';
 
 const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metals, onWithdraw }) => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [withdrawMode, setWithdrawMode] = useState<WithdrawMode>('specific');
   const [withdrawAmounts, setWithdrawAmounts] = useState<{ [key: string]: number }>(() => {
     return metals.reduce((acc, metal) => ({
