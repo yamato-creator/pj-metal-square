@@ -30,5 +30,27 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-asyncio
 
+      - name: Create dummy credentials.json for tests
+        # サービスアカウント構造として valid な値を持つダミー。
+        # 構造検証のみで、テストはネットワーク呼び出しを全てモック化済み。
+        # 秘密鍵は openssl で生成したダミー鍵。本物の鍵は含まない。
+        run: |
+          openssl genrsa -out /tmp/dummy_key.pem 2048
+          DUMMY_KEY=$(cat /tmp/dummy_key.pem | python3 -c 'import sys; print(sys.stdin.read().replace(chr(10), "\\n"))')
+          cat > credentials.json <<JSON
+          {
+            "type": "service_account",
+            "project_id": "ci-dummy",
+            "private_key_id": "0000000000000000000000000000000000000000",
+            "private_key": "${DUMMY_KEY}",
+            "client_email": "ci-dummy@ci-dummy.iam.gserviceaccount.com",
+            "client_id": "100000000000000000000",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ci-dummy%40ci-dummy.iam.gserviceaccount.com"
+          }
+          JSON
+
       - name: Run pytest
         run: pytest tests/ -v
