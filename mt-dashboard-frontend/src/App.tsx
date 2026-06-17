@@ -11,6 +11,7 @@ import {
 import { Login } from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { authStorage } from './utils/authStorage';
+import { extractApiErrorMessage } from './utils/apiError';
 import { useTransactions } from './hooks/useTransactions';
 import theme from './theme/theme';
 import AssetStatus from './components/AssetStatus';
@@ -240,7 +241,7 @@ function MainContent() {
       });
 
       if (!response.ok) {
-        throw new Error('資産情報の取得に失敗しました');
+        throw new Error(await extractApiErrorMessage(response, '資産情報の取得に失敗しました'));
       }
 
       const data = await response.json();
@@ -434,9 +435,9 @@ function MainContent() {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/transactions`, {
         headers: getAuthHeaders()
       });
-      
+
       if (!response.ok) {
-        throw new Error('取引履歴の取得に失敗しました');
+        throw new Error(await extractApiErrorMessage(response, '取引履歴の取得に失敗しました'));
       }
       
       const data = await response.json();
@@ -541,7 +542,7 @@ function MainContent() {
       });
 
       if (!response.ok) {
-        throw new Error('預入処理に失敗しました');
+        throw new Error(await extractApiErrorMessage(response, '預入処理に失敗しました'));
       }
 
       const responseData = await response.json();
@@ -621,7 +622,7 @@ function MainContent() {
       });
 
       if (!response.ok) {
-        throw new Error('現物返却処理に失敗しました');
+        throw new Error(await extractApiErrorMessage(response, '現物返却処理に失敗しました'));
       }
 
       const responseData = await response.json();

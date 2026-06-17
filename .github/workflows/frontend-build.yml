@@ -1,0 +1,35 @@
+name: frontend-build
+
+on:
+  push:
+    paths:
+      - 'mt-dashboard-frontend/**'
+      - '.github/workflows/frontend-build.yml'
+  pull_request:
+    paths:
+      - 'mt-dashboard-frontend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mt-dashboard-frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mt-dashboard-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (CI=false で warning 許容)
+        env:
+          CI: "false"
+          REACT_APP_API_URL: https://api.preciousmetalmine.com
+        run: npm run build
