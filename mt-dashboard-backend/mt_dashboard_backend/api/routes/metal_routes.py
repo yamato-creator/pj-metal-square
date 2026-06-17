@@ -97,6 +97,8 @@ async def get_user_assets(
 ):
     """ユーザーの資産情報を取得"""
     try:
+        if current_user.get("user_id") != user_id:
+            raise HTTPException(status_code=403, detail="他のユーザーの資産は取得できません")
         asset_service = AssetService()
         current_assets = asset_service.fetch_user_assets_with_validation(user_id)
         

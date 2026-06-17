@@ -1,15 +1,18 @@
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator
 import re
 from typing import Optional
+
+_EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+
 
 class UserBase(BaseModel):
     """ユーザーの基本情報を定義する基底モデル"""
     email: str
 
-    @validator('email')
-    def validate_email(cls, v):
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(pattern, v):
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        if not _EMAIL_PATTERN.match(v):
             raise ValueError("不正なメールアドレス形式です")
         return v
 
@@ -17,8 +20,9 @@ class UserRegister(UserBase):
     """ユーザー登録時のリクエストモデル"""
     password: str
 
-    @validator('password')
-    def validate_password(cls, v):
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
         if len(v) < 8:
             raise ValueError("パスワードは8文字以上で入力してください")
         return v
@@ -43,8 +47,9 @@ class PasswordChange(BaseModel):
     old_password: str
     new_password: str
 
-    @validator('new_password')
-    def validate_new_password(cls, v):
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
         if len(v) < 8:
             raise ValueError("新しいパスワードは8文字以上で入力してください")
         return v
@@ -54,9 +59,9 @@ class EmailChange(BaseModel):
     user_id: str
     new_email: str
 
-    @validator('new_email')
-    def validate_new_email(cls, v):
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(pattern, v):
+    @field_validator('new_email')
+    @classmethod
+    def validate_new_email(cls, v: str) -> str:
+        if not _EMAIL_PATTERN.match(v):
             raise ValueError("不正なメールアドレス形式です")
         return v

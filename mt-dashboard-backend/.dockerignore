@@ -1,3 +1,11 @@
+# Credentials / Secrets — Docker image に焼き込ませない
+credentials.json
+*.json.local
+.env
+.env.*
+!.env.example
+
+# Python
 __pycache__
 *.pyc
 *.pyo
@@ -5,5 +13,21 @@ __pycache__
 .Python
 env/
 venv/
-.env
-*.log 
+.venv/
+.env_test/
+
+# Tests / Tooling
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# Git / IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+*.log
+
+# OS
+.DS_Store

@@ -94,8 +94,9 @@ class UserService(SheetsBase):
     def create_user(self, email: str, password: str, api_key: str) -> Optional[Dict]:
         """新規ユーザーを作成（パスワードは bcrypt で保管）。"""
         try:
-            # ユーザーIDの生成（USER + タイムスタンプ）
-            user_id = f"USER{jst_compact()}"
+            # ユーザーIDの生成（USER + JST秒精度 + ランダム3桁、同秒内の衝突を防止）
+            import secrets
+            user_id = f"USER{jst_compact()}{secrets.randbelow(1000):03d}"
 
             # ユーザー名の生成（メールアドレスの@前）
             username = email.split('@')[0]
@@ -186,20 +187,23 @@ class UserService(SheetsBase):
             return None
 
     def update_user_email(self, user_id: str, new_email: str) -> bool:
-        """ユーザーのメールアドレスとユーザー名を更新"""
+        """ユーザーのメールアドレスとユーザー名を更新（B,C列を1回のバッチで更新）。
+
+        旧実装は C → B と2回の API 呼び出しで、片方失敗時にメール/ユーザー名が
+        ズレた状態で残るバグがあった。Sheets API の単一 update_data で B:C を
+        まとめて書き込み、原子性を取る。
+        """
         try:
             sheet_data = self._get_sheet_data('users!A:D')
             if not sheet_data:
                 return False
-                
-            # メールアドレスから新しいユーザー名を生成（@の前の部分）
+
             new_user_name = new_email.split('@')[0]
-            
+
             for i, row in enumerate(sheet_data[1:], start=2):
                 if row[0] == user_id:
-                    # メールアドレス（C列）とユーザー名（B列）を更新
-                    self.update_data(f"users!C{i}", [[new_email]])
-                    return self.update_data(f"users!B{i}", [[new_user_name]])
+                    # B,C 列を1回のリクエストで更新（B=user_name, C=email）
+                    return self.update_data(f"users!B{i}:C{i}", [[new_user_name, new_email]])
             return False
 
         except Exception as e:
@@ -227,15 +231,20 @@ class UserService(SheetsBase):
                 return False
                 
             current_time = jst_str()
-            
-            # is_deletedとdeleted_atを更新
-            update_range = f'users!G{user_row_idx}:H{user_row_idx}'
-            result = self.update_data(update_range, [[True, current_time]])
-            
+
+            # 退会と同時に API キーを失効させる（旧キーで認証通過するのを防ぐ）。
+            # 旧キーは "REVOKED_<元値>" にローテし、検証側は完全一致比較なので通らなくなる。
+            current_api_key = users_data[user_row_idx - 1][5] if len(users_data[user_row_idx - 1]) > 5 else ""
+            revoked_api_key = f"REVOKED_{current_api_key}" if current_api_key and not current_api_key.startswith("REVOKED_") else current_api_key
+
+            # F=api_key, G=is_deleted, H=deleted_at を1回のリクエストで更新
+            update_range = f'users!F{user_row_idx}:H{user_row_idx}'
+            result = self.update_data(update_range, [[revoked_api_key, True, current_time]])
+
             if not result:
                 logging.error("ユーザーの退会処理に失敗")
                 return False
-                
+
             return True
             
         except Exception as e:

@@ -8,6 +8,8 @@ from ...services.asset_service import AssetService
 from ..utils.auth import verify_api_key
 from ..utils.email import EmailSender
 from ..utils.time import jst_str, jst_compact
+from ..utils.access_time import require_business_hours
+from ..utils.user_lock import user_lock
 
 # ルーターの設定
 router = APIRouter()
@@ -37,9 +39,15 @@ async def get_transactions(
 @router.post("/cancel/{transaction_id}")
 async def cancel_transaction(
     transaction_id: str,
-    current_user: dict = Depends(verify_api_key)
+    current_user: dict = Depends(verify_api_key),
+    _bh: None = Depends(require_business_hours),
 ):
     """取引をキャンセルする"""
+    async with user_lock(current_user["user_id"]):
+      return await _cancel_transaction(transaction_id, current_user)
+
+
+async def _cancel_transaction(transaction_id: str, current_user: dict):
     try:
         transaction_service = TransactionService()
         asset_service = AssetService()
@@ -181,9 +189,15 @@ async def cancel_transaction(
 @router.post("/sale")
 async def create_sale_quote_request(
     transaction_data: TransactionCreate,
-    current_user: dict = Depends(verify_api_key)
+    current_user: dict = Depends(verify_api_key),
+    _bh: None = Depends(require_business_hours),
 ):
     """売却の見積もり依頼を作成（資産は減らさず、スクエアへ通知のみ）"""
+    async with user_lock(current_user["user_id"]):
+        return await _create_sale_quote_request(transaction_data, current_user)
+
+
+async def _create_sale_quote_request(transaction_data: TransactionCreate, current_user: dict):
     try:
         transaction_service = TransactionService()
         asset_service = AssetService()
@@ -281,9 +295,15 @@ async def create_sale_quote_request(
 @router.post("/deposit")
 async def create_deposit_transaction(
     transaction_data: DepositCreate,
-    current_user: dict = Depends(verify_api_key)
+    current_user: dict = Depends(verify_api_key),
+    _bh: None = Depends(require_business_hours),
 ):
     """預入取引を作成"""
+    async with user_lock(current_user["user_id"]):
+        return await _create_deposit_transaction(transaction_data, current_user)
+
+
+async def _create_deposit_transaction(transaction_data: DepositCreate, current_user: dict):
     try:
         transaction_service = TransactionService()
         asset_service = AssetService()
@@ -395,8 +415,15 @@ async def create_deposit_transaction(
 @router.post("/withdraw")
 async def create_withdraw_transaction(
     transaction_data: WithdrawCreate,
-    current_user: dict = Depends(verify_api_key)
+    current_user: dict = Depends(verify_api_key),
+    _bh: None = Depends(require_business_hours),
 ):
+    """現物返却取引を作成（公開ハンドラ）。"""
+    async with user_lock(current_user["user_id"]):
+        return await _create_withdraw_transaction(transaction_data, current_user)
+
+
+async def _create_withdraw_transaction(transaction_data: WithdrawCreate, current_user: dict):
     """現物返却取引を作成"""
     try:
         transaction_service = TransactionService()
