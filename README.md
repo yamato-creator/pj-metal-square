@@ -8,8 +8,7 @@
 | 環境 | URL | 補足 |
 |------|-----|------|
 | バックエンド | https://api.preciousmetalmine.com | Render（main push で自動デプロイ） |
-| フロント | https://www.preciousmetalmine.com | Vercel（旧チーム所属、要DNS移行） |
-| フロント新 | https://pj-metal-square-three.vercel.app | Vercel（最新コード即時反映） |
+| フロント | https://www.preciousmetalmine.com | Vercel `pj-metals-projects/pj-metal-square`（main push で自動デプロイ） |
 | DB | Google Sheets (`SPREADSHEET_ID` 環境変数) | サービスアカウント経由 |
 
 ## アーキテクチャ
