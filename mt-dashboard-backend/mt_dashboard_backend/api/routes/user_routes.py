@@ -6,7 +6,7 @@ from ...models.user import PasswordChange, EmailChange
 from ...services.user_service import UserService
 from ..utils.auth import verify_api_key
 from ..utils.email import EmailSender
-from ..utils.password import verify_password, hash_password, needs_rehash
+from ..utils.password import verify_password
 from ..utils.time import jst_str
 
 # ルーターの設定
@@ -136,15 +136,6 @@ async def verify_password_endpoint(
                 status_code=401,
                 detail="パスワードが正しくありません"
             )
-
-        # 平文だった場合はこのタイミングでも自動ハッシュ化
-        if needs_rehash(stored):
-            try:
-                user_service.update_user_password_hash(
-                    current_user['user_id'], hash_password(submitted)
-                )
-            except Exception as mig_err:
-                logger.warning(f"パスワードハッシュ移行に失敗（verify契機）: {mig_err}")
 
         return {"status": "success", "message": "パスワード検証成功"}
 

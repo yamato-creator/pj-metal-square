@@ -1,4 +1,4 @@
-"""login の bcrypt 検証 + 平文→ハッシュ自動マイグレーションのテスト。"""
+"""login のパスワード検証テスト（bcrypt ハッシュ・平文の両対応）。"""
 
 import pytest
 from fastapi import FastAPI
@@ -64,8 +64,8 @@ def test_login_fails_with_wrong_password(monkeypatch, app_client):
     assert resp.status_code == 401
 
 
-def test_login_with_plaintext_password_triggers_auto_migration(monkeypatch, app_client):
-    """既存DBの平文パスワードでも login 可能、かつ即時に bcrypt ハッシュへ移行する。"""
+def test_login_with_plaintext_password_stays_plaintext(monkeypatch, app_client):
+    """平文パスワードで login 可能、かつ自動ハッシュ化されない（平文保管が正の運用）。"""
     capture = {}
     monkeypatch.setattr(
         auth_routes, "UserService", _make_service_mock("legacyplain123", capture)
@@ -76,6 +76,5 @@ def test_login_with_plaintext_password_triggers_auto_migration(monkeypatch, app_
         json={"user_id": "USER_A", "password": "legacyplain123"},
     )
     assert resp.status_code == 200
-    # 平文 → bcrypt ハッシュへ移行されたことを確認
-    assert "migrated_hash" in capture
-    assert capture["migrated_hash"].startswith("$2b$") or capture["migrated_hash"].startswith("$2a$")
+    # 平文のまま維持され、ハッシュ化への書き換えは発生しない
+    assert "migrated_hash" not in capture

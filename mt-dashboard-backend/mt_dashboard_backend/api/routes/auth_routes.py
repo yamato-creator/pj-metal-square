@@ -6,7 +6,7 @@ from slowapi import Limiter
 from ...models.user import UserRegister, UserLogin
 from ...services.user_service import UserService
 from ..utils.email import EmailSender
-from ..utils.password import verify_password, hash_password, needs_rehash
+from ..utils.password import verify_password
 from ..utils.rate_limit_key import get_real_ip
 
 # ブルートフォース対策：登録・ログインは IP あたり 5回/分 まで
@@ -112,23 +112,13 @@ async def login_user(request: Request, user: UserLogin):
             )
 
         # パスワード検証（bcrypt と平文の両対応）。
-        # 既存ユーザーは平文保管のため、verify_password で平文一致 → 自動でハッシュ化に移行。
+        # 平文保管が正のため自動ハッシュ化は行わない（管理者がシート上で直接記入・確認する運用）。
         stored_password = user_service.fetch_password_hash(user.user_id)
         if not verify_password(user.password, stored_password):
             raise HTTPException(
                 status_code=401,
                 detail="ユーザーIDまたはパスワードが間違っています"
             )
-
-        # 平文保管だった場合は即座にハッシュ化して保存（移行マイグレ）。
-        if needs_rehash(stored_password):
-            try:
-                new_hash = hash_password(user.password)
-                user_service.update_user_password_hash(user.user_id, new_hash)
-                logger.info(f"パスワードを bcrypt 化（ログイン契機の自動マイグレ）: {user.user_id}")
-            except Exception as mig_err:
-                # マイグレーション失敗はログインを止めない（次回ログインで再試行）
-                logger.warning(f"パスワードハッシュ移行に失敗: {mig_err}")
 
         logger.info(f"ログイン成功: {user_data['user_id']}")
         return {

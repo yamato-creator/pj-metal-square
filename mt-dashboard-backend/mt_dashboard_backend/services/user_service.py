@@ -3,7 +3,6 @@ import logging
 import pandas as pd
 from datetime import datetime
 from .base.sheets_base import SheetsBase
-from ..api.utils.password import hash_password
 from ..api.utils.time import jst_str, jst_compact
 
 class UserService(SheetsBase):
@@ -92,7 +91,7 @@ class UserService(SheetsBase):
             return False
 
     def create_user(self, email: str, password: str, api_key: str) -> Optional[Dict]:
-        """新規ユーザーを作成（パスワードは bcrypt で保管）。"""
+        """新規ユーザーを作成（パスワードは平文で保管。管理者がシート上で直接確認・記入するため）。"""
         try:
             # ユーザーIDの生成（USER + JST秒精度 + ランダム3桁、同秒内の衝突を防止）
             import secrets
@@ -104,15 +103,12 @@ class UserService(SheetsBase):
             # 現在時刻
             current_time = jst_str()
 
-            # パスワードを bcrypt でハッシュ化して保管
-            hashed = hash_password(password)
-
             # 新規ユーザーデータ
             user_data = [[
                 user_id,        # ユーザーID
                 username,       # ユーザー名
                 email,         # メールアドレス
-                hashed,        # パスワード(bcryptハッシュ)
+                password,      # パスワード(平文)
                 current_time,  # 登録日時
                 api_key,       # APIキー
                 False,         # is_deleted
@@ -141,17 +137,15 @@ class UserService(SheetsBase):
             return None
 
     def update_user_password(self, user_id: str, new_password: str) -> bool:
-        """ユーザーのパスワードを更新（bcrypt ハッシュで保管）。"""
+        """ユーザーのパスワードを更新（平文で保管）。"""
         try:
             sheet_data = self._get_sheet_data('users!A:D')
             if not sheet_data:
                 return False
 
-            hashed = hash_password(new_password)
-
             for i, row in enumerate(sheet_data[1:], start=2):
                 if row[0] == user_id:
-                    return self.update_data(f"users!D{i}", [[hashed]])
+                    return self.update_data(f"users!D{i}", [[new_password]])
             return False
 
         except Exception as e:
