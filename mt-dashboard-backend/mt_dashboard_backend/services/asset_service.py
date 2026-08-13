@@ -109,9 +109,18 @@ class AssetService(SheetsBase):
             bool: 作成成功時True、失敗時False
         """
         try:
-            result = self.append_data('assets', 'A:E', [asset_values])
+            # append API はシート右側の集計表（G2:H7）も「使用中の範囲」とみなすため、
+            # データが少ないと集計表の下（8行目〜）に書かれて2〜7行が空いてしまう。
+            # A列だけを見て最初の空き行を求め、明示的にその行へ書き込む。
+            col_a = self._get_sheet_data('assets!A:A')
+            next_row = len(col_a) + 1
+            for i, row in enumerate(col_a[1:], start=2):
+                if not row or not str(row[0]).strip():
+                    next_row = i
+                    break
+            result = self.update_data(f'assets!A{next_row}:E{next_row}', [asset_values])
             return bool(result)
-            
+
         except Exception as e:
             logging.error(f"資産作成エラー: {str(e)}")
             return False

@@ -210,21 +210,25 @@ function createAssetRecords(userId) {
   const dateTimeString = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyyMMddHHmmss");
   const formattedDateTime = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy/MM/dd HH:mm:ss");
 
+  // A列基準で最後のデータ行を求める。
+  // getLastRow() は右側の集計表（G2:H7）も含んだ最終行を返すため、
+  // データ削除直後だと8行目から書かれて2〜7行が空白になってしまう。
+  const colA = assetsSheet.getRange(1, 1, assetsSheet.getLastRow(), 1).getValues();
+  let lastDataRow = 1;
+  for (let i = 0; i < colA.length; i++) {
+    if (colA[i][0] !== "") lastDataRow = i + 1;
+  }
+
   // 各貴金属のレコードを作成
   metals.forEach((metal, index) => {
     // 資産IDを生成 (AST + 日時分秒 + インデックス)
     const assetId = `AST${dateTimeString}${index}`;
+    const newRow = lastDataRow + 1 + index;
 
-    // assetsシートの最後の行を取得
-    const lastRow = assetsSheet.getLastRow();
-    const newRow = lastRow + 1;
-
-    // データを設定
-    assetsSheet.getRange(newRow, 1).setValue(assetId);      // A列: 資産ID
-    assetsSheet.getRange(newRow, 2).setValue(userId);       // B列: ユーザーID
-    assetsSheet.getRange(newRow, 3).setValue(metal);        // C列: 貴金属名
-    assetsSheet.getRange(newRow, 4).setValue(0);            // D列: 保有量(g)
-    assetsSheet.getRange(newRow, 5).setValue(formattedDateTime); // E列: 更新日時
+    // データを設定（A〜E列を一括書き込み）
+    assetsSheet.getRange(newRow, 1, 1, 5).setValues([
+      [assetId, userId, metal, 0, formattedDateTime]
+    ]);
   });
 
   console.log(`ユーザーID ${userId} の資産レコードを作成しました`);
