@@ -21,7 +21,7 @@ class AssetService(SheetsBase):
             user_is_deleted = True
 
             for row in user_data[1:]:
-                if row[0] == user_id:
+                if row and row[0] == user_id:
                     is_deleted = row[6] if len(row) > 6 else False
                     if isinstance(is_deleted, str):
                         is_deleted = is_deleted.strip().lower() == 'true'
@@ -74,7 +74,7 @@ class AssetService(SheetsBase):
             # 該当する資産の行を探す
             target_row_idx = None
             for idx, row in enumerate(values[1:], start=2):
-                if row[1] == user_id and row[2] == metal_type:
+                if len(row) > 2 and row[1] == user_id and row[2] == metal_type:
                     target_row_idx = idx
                     break
             

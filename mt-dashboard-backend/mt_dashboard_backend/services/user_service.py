@@ -25,7 +25,8 @@ class UserService(SheetsBase):
                       'registered_at', 'api_key', 'is_deleted', 'deleted_at']
 
             for row in sheet_data[1:]:
-                if row[0] == user_id:
+                # 管理者がシート上で行の内容だけ消すと空行が残るため、空行は読み飛ばす
+                if row and row[0] == user_id:
                     user_dict = dict(zip(headers, row))
                     # is_deletedをブール値に変換
                     user_dict['is_deleted'] = str(user_dict.get('is_deleted', '')).strip().lower() == 'true'
@@ -144,7 +145,7 @@ class UserService(SheetsBase):
                 return False
 
             for i, row in enumerate(sheet_data[1:], start=2):
-                if row[0] == user_id:
+                if row and row[0] == user_id:
                     return self.update_data(f"users!D{i}", [[new_password]])
             return False
 
@@ -159,7 +160,7 @@ class UserService(SheetsBase):
             if not sheet_data:
                 return False
             for i, row in enumerate(sheet_data[1:], start=2):
-                if row[0] == user_id:
+                if row and row[0] == user_id:
                     return self.update_data(f"users!D{i}", [[hashed_password]])
             return False
         except Exception as e:
@@ -195,7 +196,7 @@ class UserService(SheetsBase):
             new_user_name = new_email.split('@')[0]
 
             for i, row in enumerate(sheet_data[1:], start=2):
-                if row[0] == user_id:
+                if row and row[0] == user_id:
                     # B,C 列を1回のリクエストで更新（B=user_name, C=email）
                     return self.update_data(f"users!B{i}:C{i}", [[new_user_name, new_email]])
             return False
@@ -216,7 +217,7 @@ class UserService(SheetsBase):
             # ユーザーIDの列のインデックスを検索
             user_row_idx = None
             for idx, row in enumerate(users_data):
-                if row[0] == user_id:
+                if row and row[0] == user_id:
                     user_row_idx = idx + 1
                     break
                     
