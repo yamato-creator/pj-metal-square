@@ -40,7 +40,8 @@ class AssetService(SheetsBase):
             headers = ['asset_id', 'user_id', 'metal_type', 'weight_g', 'updated_at']
             assets = []
             for row in values[1:]:
-                if row[1] == user_id:
+                # 空行が混ざると row[1] が IndexError になり資産取得全体が失敗するため防御
+                if len(row) > 1 and row[1] == user_id:
                     asset_dict = dict(zip(headers, row))
                     assets.append(asset_dict)
             

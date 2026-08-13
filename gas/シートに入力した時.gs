@@ -333,6 +333,9 @@ function processDeposit() {
 
     // 4. 資産の更新と取引履歴の追加
     const metalNames = ['金', 'パラジウム', '銀', 'プラチナ'];
+    // 資産行が無いユーザー（データ削除後の預入など）は先に0gの資産行を作成する。
+    // 作成しないと下の検索でヒットせず、transactions だけ記録されて assets が更新されない。
+    createAssetRecords(selectedUserId);
     const assetsData = assetsSheet.getDataRange().getValues();
 
     for (let i = 0; i < depositAmounts.length; i++) {
