@@ -176,6 +176,10 @@ export const AccountSettings = () => {
             >
               ログアウト
             </Button>
+            {/* 退会機能は 2026/08/16 星さんの依頼で非表示。
+                （客が自己判断で退会し、資産売却前に退会されるのを防ぐため。退会は口頭で受付）
+                再度有効にする場合は下記ボタンのコメントを解除するだけでよい。
+                バックエンドの /api/users/deactivate も同時に無効化済み。
             <Button
               variant="outlined"
               color="error"
@@ -183,6 +187,7 @@ export const AccountSettings = () => {
             >
               退会する
             </Button>
+            */}
           </Box>
         </Paper>
       </Box>

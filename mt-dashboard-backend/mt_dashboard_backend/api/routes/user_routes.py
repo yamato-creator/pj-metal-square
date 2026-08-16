@@ -214,6 +214,13 @@ async def deactivate_user(
     current_user: dict = Depends(verify_api_key)
 ):
     """ユーザーアカウントの退会処理。"""
+    # 2026/08/16 星さん依頼により退会機能を無効化。
+    # （客が自己判断で退会し、保有資産を売却しないまま退会するのを防ぐため。退会は口頭で受付）
+    # フロント側の退会ボタンも非表示化済み。再度有効化する場合はこの raise を削除するだけでよい。
+    raise HTTPException(
+        status_code=403,
+        detail="退会機能は現在ご利用いただけません。退会をご希望の場合は担当者までご連絡ください。"
+    )
     try:
         user_service = UserService()
         email_sender = EmailSender()

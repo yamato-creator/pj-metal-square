@@ -80,17 +80,44 @@ function handleSaleInputOnEdit(e) {
     return;
   }
 
-  // 確定実行 (I5)
-  if (range.getA1Notation() === 'I5' && e.value === '確定') {
+  // 確定実行 (I5) は onEditInstalled（インストーラブルトリガー）で処理する。
+  // シンプル onEdit では GmailApp の送信権限（gmail.send）が無く、
+  // 売却完了メールが必ず失敗するため、認可を持つインストーラブル側に分離している。
+}
+
+/**
+ * インストーラブル onEdit トリガー用ハンドラ。
+ * 「売却入力」シートで I5 に「確定」が入力されたら売却処理を実行する。
+ *
+ * ★重要: このトリガーはスプレッドシートのオーナー（suquare.metal）が
+ *   「トリガー」画面から onEditInstalled / スプレッドシートから / 編集時 で登録し、
+ *   Gmail 権限を承認すること。承認したアカウントから完了メールが送信される。
+ *   シンプル onEdit（handleSaleInputOnEdit）は I5 確定を処理しないので二重実行しない。
+ */
+function onEditInstalled(e) {
+  if (!e || !e.range) return;
+  const sheet = e.range.getSheet();
+  if (sheet.getName() !== '売却入力') return;
+  if (e.range.getA1Notation() === 'I5' && e.value === '確定') {
     Utilities.sleep(100);
     processSale();
   }
 }
 
+/**
+ * ユーザーIDを10桁ゼロ埋めに正規化する。
+ * セルに数値入力すると先頭の0が欠落する（例: 0367150884 -> 367150884）ため、
+ * 照合前に両側を10桁ゼロ埋め文字列へそろえて一致判定できるようにする。
+ */
+function normUserId(v) {
+  const digits = String(v == null ? '' : v).replace(/[^0-9]/g, '');
+  return digits === '' ? '' : digits.padStart(10, '0');
+}
+
 function updateSaleUserInfo(saleSheet, userId) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const usersSheet = ss.getSheetByName('users');
-  const id = (userId ?? '').toString().trim();
+  const id = normUserId(userId);
   if (id === '') {
     saleSheet.getRange('G5').clearContent();
     saleSheet.getRange('H5').clearContent();
@@ -103,7 +130,7 @@ function updateSaleUserInfo(saleSheet, userId) {
     const uid = usersData[i][0];
     const isDel = usersData[i][6];
     const isActive = (isDel === false) || (String(isDel).toUpperCase() === 'FALSE') || isDel === '' || isDel == null;
-    if (uid === id && isActive) {
+    if (normUserId(uid) === id && isActive) {
       userName = usersData[i][1] || '';
       remarks = usersData[i][8] || '';
       break;
@@ -113,10 +140,24 @@ function updateSaleUserInfo(saleSheet, userId) {
   saleSheet.getRange('H5').setValue(remarks);
 }
 
+/**
+ * 売却処理の結果を「売却入力」シートの A11 セルに表示する。
+ * インストーラブルトリガーでは getUi().alert()/toast() が使えない（実行が中断する）ため、
+ * セル書き込みで通知する。setValue はトリガー種別に関わらず動作する。
+ */
+function saleStatus_(message) {
+  try {
+    const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('売却入力');
+    if (sh) sh.getRange('A11').setValue(message);
+  } catch (e) { /* noop */ }
+  try { console.log('[売却] ' + message); } catch (e) {}
+}
+
 function processSale() {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const saleSheet = ss.getSheetByName('売却入力');
+    saleStatus_('⏳ 売却処理中...');
     const usersSheet = ss.getSheetByName('users');
     const assetsSheet = ss.getSheetByName('assets');
     const transactionsSheet = ss.getSheetByName('transactions');
@@ -134,12 +175,12 @@ function processSale() {
       saleSheet.getRange('D5').getValue(),
       saleSheet.getRange('D6').getValue(),
     ];
-    const selectedUserId = saleSheet.getRange('F5').getDisplayValue().trim();
+    const selectedUserId = normUserId(saleSheet.getRange('F5').getDisplayValue());
 
     // 2. バリデーション
     const hasValidAmount = saleAmounts.some(a => a && a > 0);
     if (!hasValidAmount) {
-      SpreadsheetApp.getUi().alert('エラー', '売却量を入力してください。', SpreadsheetApp.getUi().ButtonSet.OK);
+      saleStatus_('❌ エラー: ' + ('売却量を入力してください。'));
       saleSheet.getRange('I5').setValue('未確定');
       return;
     }
@@ -147,14 +188,14 @@ function processSale() {
     for (let i = 0; i < saleAmounts.length; i++) {
       if (saleAmounts[i] && saleAmounts[i] > 0) {
         if (!unitPrices[i] || unitPrices[i] <= 0) {
-          SpreadsheetApp.getUi().alert('エラー', '売却する貴金属には買取単価を入力してください。', SpreadsheetApp.getUi().ButtonSet.OK);
+          saleStatus_('❌ エラー: ' + ('売却する貴金属には買取単価を入力してください。'));
           saleSheet.getRange('I5').setValue('未確定');
           return;
         }
       }
     }
     if (!selectedUserId) {
-      SpreadsheetApp.getUi().alert('エラー', 'ユーザーIDを選択してください。', SpreadsheetApp.getUi().ButtonSet.OK);
+      saleStatus_('❌ エラー: ' + ('ユーザーIDを選択してください。'));
       saleSheet.getRange('I5').setValue('未確定');
       return;
     }
@@ -168,7 +209,7 @@ function processSale() {
       const uid = usersData[i][0];
       const isDel = usersData[i][6];
       const isActive = (isDel === false) || (String(isDel).toUpperCase() === 'FALSE') || isDel === '' || isDel == null;
-      if (uid === selectedUserId && isActive) {
+      if (normUserId(uid) === selectedUserId && isActive) {
         userExists = true;
         userName = usersData[i][1] || '';
         userEmail = usersData[i][2] || ''; // C列: email
@@ -176,7 +217,7 @@ function processSale() {
       }
     }
     if (!userExists) {
-      SpreadsheetApp.getUi().alert('エラー', '選択されたユーザーIDは無効です。', SpreadsheetApp.getUi().ButtonSet.OK);
+      saleStatus_('❌ エラー: ' + ('選択されたユーザーIDは無効です。'));
       saleSheet.getRange('I5').setValue('未確定');
       return;
     }
@@ -190,10 +231,10 @@ function processSale() {
       const metalName = metalNames[i];
       let found = false;
       for (let j = 1; j < assetsData.length; j++) {
-        if (assetsData[j][1] === selectedUserId && assetsData[j][2] === metalName) {
+        if (normUserId(assetsData[j][1]) === selectedUserId && assetsData[j][2] === metalName) {
           const currentAmount = parseFloat(assetsData[j][3]) || 0;
           if (currentAmount < saleAmounts[i]) {
-            SpreadsheetApp.getUi().alert('エラー', `${metalName}の売却量(${saleAmounts[i]}g)が保有量(${currentAmount}g)を超えています。`, SpreadsheetApp.getUi().ButtonSet.OK);
+            saleStatus_('❌ エラー: ' + (`${metalName}の売却量(${saleAmounts[i]}g)が保有量(${currentAmount}g)を超えています。`));
             saleSheet.getRange('I5').setValue('未確定');
             return;
           }
@@ -203,7 +244,7 @@ function processSale() {
         }
       }
       if (!found) {
-        SpreadsheetApp.getUi().alert('エラー', `ユーザーの${metalName}の資産レコードが見つかりません。`, SpreadsheetApp.getUi().ButtonSet.OK);
+        saleStatus_('❌ エラー: ' + (`ユーザーの${metalName}の資産レコードが見つかりません。`));
         saleSheet.getRange('I5').setValue('未確定');
         return;
       }
@@ -216,14 +257,14 @@ function processSale() {
     if (dateInput) {
       transactionDate = new Date(dateInput);
       if (isNaN(transactionDate.getTime())) {
-        SpreadsheetApp.getUi().alert('エラー', '日付の形式が正しくありません。', SpreadsheetApp.getUi().ButtonSet.OK);
+        saleStatus_('❌ エラー: ' + ('日付の形式が正しくありません。'));
         saleSheet.getRange('I5').setValue('未確定');
         return;
       }
       const todayEnd = new Date();
       todayEnd.setHours(23, 59, 59, 999);
       if (transactionDate > todayEnd) {
-        SpreadsheetApp.getUi().alert('エラー', '未来の日付は入力できません。', SpreadsheetApp.getUi().ButtonSet.OK);
+        saleStatus_('❌ エラー: ' + ('未来の日付は入力できません。'));
         saleSheet.getRange('I5').setValue('未確定');
         return;
       }
@@ -294,10 +335,10 @@ function processSale() {
     saleSheet.getRange('E5:H5').clearContent();
     saleSheet.getRange('I5').setValue('未確定');
 
-    SpreadsheetApp.getUi().alert('成功', `売却処理が完了しました。\n\n合計: ${subtotalAll.toLocaleString()}円（税込 ${total.toLocaleString()}円）\n\nユーザー・管理者にメール送信しました。`, SpreadsheetApp.getUi().ButtonSet.OK);
+    saleStatus_('✅ ' + (`売却処理が完了しました。\n\n合計: ${subtotalAll.toLocaleString()}円（税込 ${total.toLocaleString()}円）\n\nユーザー・管理者にメール送信しました。`));
   } catch (error) {
     console.error('売却処理エラー:', error);
-    SpreadsheetApp.getUi().alert('エラー', 'システムエラーが発生しました:\n' + error.toString(), SpreadsheetApp.getUi().ButtonSet.OK);
+    saleStatus_('❌ エラー: ' + ('システムエラーが発生しました:\n' + error.toString()));
     try {
       SpreadsheetApp.getActiveSpreadsheet().getSheetByName('売却入力').getRange('I5').setValue('未確定');
     } catch (e) { /* noop */ }

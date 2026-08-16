@@ -182,23 +182,22 @@ class UserService(SheetsBase):
             return None
 
     def update_user_email(self, user_id: str, new_email: str) -> bool:
-        """ユーザーのメールアドレスとユーザー名を更新（B,C列を1回のバッチで更新）。
+        """ユーザーのメールアドレス(C列)のみを更新する。
 
-        旧実装は C → B と2回の API 呼び出しで、片方失敗時にメール/ユーザー名が
-        ズレた状態で残るバグがあった。Sheets API の単一 update_data で B:C を
-        まとめて書き込み、原子性を取る。
+        ユーザー名(B列)は「管理者が記入」する項目（例: オレンジデンタルクリニック）であり、
+        メール変更で書き換えてはならない。旧実装はメール変更のたびに B列を
+        new_email の @ より前の文字列で上書きしており、管理者が設定した実名が
+        消えるバグがあった（2026/08/16 星さん報告）。C列のみ更新に修正。
         """
         try:
             sheet_data = self._get_sheet_data('users!A:D')
             if not sheet_data:
                 return False
 
-            new_user_name = new_email.split('@')[0]
-
             for i, row in enumerate(sheet_data[1:], start=2):
                 if row and row[0] == user_id:
-                    # B,C 列を1回のリクエストで更新（B=user_name, C=email）
-                    return self.update_data(f"users!B{i}:C{i}", [[new_user_name, new_email]])
+                    # C列(メールアドレス)のみ更新。B列(ユーザー名)は触らない。
+                    return self.update_data(f"users!C{i}", [[new_email]])
             return False
 
         except Exception as e:
