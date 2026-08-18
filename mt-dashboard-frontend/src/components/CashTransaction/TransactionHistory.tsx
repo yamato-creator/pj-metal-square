@@ -172,7 +172,8 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
 
       <h1 className="responsive-heading mb-4">取引履歴</h1>
       <div className="space-y-4">
-        {transactions.map((transaction) => (
+        {/* 見積依頼は取引履歴に表示しない（2026/08/18 星さん依頼）。DB(スプレッドシート)には引き続き記録される。 */}
+        {transactions.filter((transaction) => transaction.transaction_type !== '見積依頼').map((transaction) => (
           <div key={transaction.id} className="responsive-card bg-white p-4 rounded shadow">
             <div className="flex justify-between items-center mb-2">
               <div>

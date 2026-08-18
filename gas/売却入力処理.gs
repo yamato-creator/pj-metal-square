@@ -36,7 +36,7 @@ function handleSaleInputOnEdit(e) {
   if ((range.getColumn() === 3 || range.getColumn() === 4) &&
       range.getRow() >= 3 && range.getRow() <= 6) {
     const inputValue = range.getValue();
-    if (inputValue === '' || inputValue === null) return;
+    if (inputValue === '' || inputValue === null) { updateSalePreview(sheet); return; }
 
     const strValue = inputValue.toString();
     const cleanedValue = strValue.replace(/[^0-9.]/g, '');
@@ -50,6 +50,7 @@ function handleSaleInputOnEdit(e) {
       return;
     }
     if (inputValue !== numericValue) range.setValue(numericValue);
+    updateSalePreview(sheet);
     return;
   }
 
@@ -151,6 +152,41 @@ function saleStatus_(message) {
     if (sh) sh.getRange('A11').setValue(message);
   } catch (e) { /* noop */ }
   try { console.log('[売却] ' + message); } catch (e) {}
+}
+
+/**
+ * 「確定」前の金額プレビューを A11 に表示する（2026/08/18 星さん依頼）。
+ * 売却量(C3:C6)・買取単価(D3:D6) を入力した時点で、貴金属ごとの金額と
+ * 合計（税抜・消費税・税込）を計算して表示し、内容を確認してから「確定」できるようにする。
+ * ※資産・取引には一切影響しない（表示のみ）。シンプル onEdit から呼ばれる。
+ */
+function updateSalePreview(saleSheet) {
+  try {
+    const metalNames = ['金', 'パラジウム', '銀', 'プラチナ'];
+    const amounts = saleSheet.getRange('C3:C6').getValues();
+    const prices = saleSheet.getRange('D3:D6').getValues();
+    const lines = [];
+    let subtotal = 0;
+    for (let i = 0; i < 4; i++) {
+      const amount = parseFloat(amounts[i][0]);
+      const price = parseFloat(prices[i][0]);
+      if (!amount || amount <= 0 || !price || price <= 0) continue;
+      const lineTotal = Math.floor(amount * Math.floor(price));
+      subtotal += lineTotal;
+      lines.push(`${metalNames[i]}: ${amount}g × ${Math.floor(price).toLocaleString()}円/g = ${lineTotal.toLocaleString()}円`);
+    }
+    if (lines.length === 0) {
+      saleStatus_('売却量と買取単価を入力すると、ここに金額プレビューが表示されます。');
+      return;
+    }
+    const tax = Math.floor(subtotal * 0.1);
+    const total = subtotal + tax;
+    saleStatus_('🔎【確認】内容がよければ「4. 売却確定」で「確定」を選択してください。\n'
+      + lines.join('\n')
+      + `\n売却合計(税抜): ${subtotal.toLocaleString()}円 / 消費税: ${tax.toLocaleString()}円 / 合計(税込): ${total.toLocaleString()}円`);
+  } catch (e) {
+    // プレビュー失敗は本処理に影響させない
+  }
 }
 
 function processSale() {
@@ -335,7 +371,7 @@ function processSale() {
     saleSheet.getRange('E5:H5').clearContent();
     saleSheet.getRange('I5').setValue('未確定');
 
-    saleStatus_('✅ ' + (`売却処理が完了しました。\n\n合計: ${subtotalAll.toLocaleString()}円（税込 ${total.toLocaleString()}円）\n\nユーザー・管理者にメール送信しました。`));
+    saleStatus_('✅ ' + (`売却処理が完了しました。\n${saleLines.join('\n')}\n売却合計(税抜): ${subtotalAll.toLocaleString()}円 / 消費税: ${tax.toLocaleString()}円 / 合計(税込): ${total.toLocaleString()}円\nユーザー・管理者にメール送信しました。`));
   } catch (error) {
     console.error('売却処理エラー:', error);
     saleStatus_('❌ エラー: ' + ('システムエラーが発生しました:\n' + error.toString()));

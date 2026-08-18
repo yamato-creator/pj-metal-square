@@ -85,7 +85,8 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading, price
               {metals.map((metal) => (
                 <tr key={metal.name} className="border-t">
                   <td className="py-2 whitespace-nowrap">{metal.name} {metal.nameJp}</td>
-                  <td className="text-right py-2 whitespace-nowrap">{metal.amount === 0 ? '' : metal.amount.toFixed(2)}</td>
+                  {/* 保有量0は空白ではなく「0」を表示（2026/08/18 星さん依頼） */}
+                  <td className="text-right py-2 whitespace-nowrap">{metal.amount === 0 ? '0' : metal.amount.toFixed(2)}</td>
                   <td className="text-right py-2 whitespace-nowrap">
                     {metal.unitPrice === 0 ? '' : Math.floor(metal.unitPrice).toLocaleString()}
                   </td>
