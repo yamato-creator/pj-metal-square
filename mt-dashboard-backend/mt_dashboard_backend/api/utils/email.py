@@ -198,23 +198,29 @@ https://www.preciousmetalmine.com/
 
 心当たりのない変更の場合は、直ちに管理者までご連絡ください。
 """
-        # 新しいアドレスに送信
-        success = await self.send_email(new_email, subject, body)
-        
-        # 管理者向けメール送信
-        if success:
-            admin_subject = "ユーザーのメールアドレス変更通知"
-            admin_body = f"""
+        # 新しいアドレスに送信（変更後の確認）
+        success_new = await self.send_email(new_email, subject, body)
+
+        # 旧アドレスにも送信（お客様が確実にアクセスできる住所への通知・セキュリティ確認）
+        # 2026/08/21 星さん要望: 変更先メールに届かないケースの保険として旧アドレスにも送る
+        success_old = False
+        if old_email and old_email != new_email:
+            success_old = await self.send_email(old_email, subject, body)
+
+        # 管理者向けメール送信（ユーザー送信の成否に関わらず必ず通知）
+        admin_subject = "ユーザーのメールアドレス変更通知"
+        admin_body = f"""
 以下のユーザーがメールアドレスを変更しました。
 
 ユーザーID: {user_id}
 変更前: {old_email}
 変更後: {new_email}
 変更日時: {change_datetime}"""
-            
-            await self.send_email_to_all_admins(admin_subject, admin_body)
-        
-        return success
+
+        await self.send_email_to_all_admins(admin_subject, admin_body)
+
+        # 新旧いずれかの宛先に送れていれば成功扱い
+        return success_new or success_old
 
     async def send_deactivation_email(self, user_email: str, deactivation_datetime: str) -> bool:
         """退会完了メールを送信"""
@@ -300,16 +306,21 @@ https://www.preciousmetalmine.com/
         reference_total: int,
         transaction_id: str,
     ) -> bool:
-        """売却見積もり依頼の通知メール（スクエア管理者のみ通知）。
+        """売却見積もり依頼の通知メール（現状はスクエア管理者のみ通知）。
 
         【仕様】見積書 ⑩ より:
           「スクエア様（管理者）にのみ見積もり依頼の通知メールを送信する
            （ユーザーへのメール送信なし）」
-        ユーザー側はアプリ画面の受付完了表示のみで、メール送信は行わない。
+
+        【2026/08/21 星さん電話】お客様にも受付メール（担当者よりご連絡の旨）を送る
+          方針に変更予定。ただし**お客様向けの正式文面は星さんから受領予定**のため、
+          文面確定までは実装を保留（本番で未確定文面を送らないようにする）。
+          受領後、お客様向け送信ブロックをここに追加する（ドラフトは議事録
+          `MTG/MTG議事録/20260821_星さん電話_議事録.md` 参照）。
         """
         request_datetime = jst_str()
 
-        # スクエア管理者向け: 依頼通知（ユーザー宛は送らない）
+        # スクエア管理者向け: 依頼通知（ユーザー宛は文面確定まで保留）
         admin_subject = "【要対応】新規の売却見積もり依頼"
         admin_body = f"""
 ユーザーより売却見積もり依頼が届きました。内容をご確認のうえ、正式な見積もり金額を提示してください。

@@ -3,6 +3,9 @@
 仕様: 見積書 ⑩
   「スクエア様（管理者）にのみ見積もり依頼の通知メールを送信する
    （ユーザーへのメール送信なし）」
+
+※ 2026/08/21 星さん電話で「お客様にも受付メールを送る」方針に変更予定だが、
+  正式文面の受領待ちのため実装は保留中（本テストは保留中の現行仕様を検証）。
 """
 import pytest
 from unittest.mock import AsyncMock, patch
@@ -10,7 +13,7 @@ from unittest.mock import AsyncMock, patch
 
 @pytest.mark.asyncio
 async def test_quote_request_email_only_sends_to_admins_not_user():
-    """売却見積依頼は管理者のみに送信し、ユーザーには送らない（仕様 ⑩）。"""
+    """売却見積依頼は管理者のみに送信し、ユーザーには送らない（仕様 ⑩・⑧文面受領まで保留）。"""
     from mt_dashboard_backend.api.utils.email import EmailSender
 
     sender = EmailSender()

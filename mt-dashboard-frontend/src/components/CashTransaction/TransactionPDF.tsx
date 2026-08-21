@@ -192,12 +192,6 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
     return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
   };
 
-  // 決済種別を取得
-  const getPaymentType = () => {
-    if (isWithdraw) return '現物返却';
-    return '現金決済';
-  };
-
   // 金属名を日本語に変換（プラチナ→白金）
   const getMetalNameJp = (nameJp: string) => {
     if (nameJp === 'プラチナ') return '白金';
@@ -213,6 +207,8 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
           
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>{transaction.company || 'スクエア合同会社'}</Text>
+            <Text style={{ fontSize: 11, marginBottom: 2 }}>群馬県館林市花山27-16 セントセシリア101号</Text>
+            <Text style={{ fontSize: 11, marginBottom: 5 }}>TEL: 0276-58-3112</Text>
             <Text style={styles.registrationNumber}>(登録番号: T8030003020398)</Text>
           </View>
         </View>
@@ -240,9 +236,6 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
           </View>
           <View style={styles.transactionInfoRow}>
             <Text style={{ fontSize: 12 }}>取引番号: {transaction.id}</Text>
-          </View>
-          <View style={styles.transactionInfoRow}>
-            <Text style={{ fontSize: 12 }}>決済種別: {getPaymentType()}</Text>
           </View>
           <View style={styles.transactionInfoRow}>
             <Text style={{ fontSize: 12 }}>決済状態: 確定</Text>
@@ -318,8 +311,8 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
                 <Text style={styles.summaryValue}>{transaction.subtotal.toLocaleString()}円</Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>適用税率 10% 消費税</Text>
-                <Text style={styles.summaryValue}>{transaction.tax.toLocaleString()}円</Text>
+                <Text style={styles.summaryLabel}>消費税</Text>
+                <Text style={styles.summaryValue}>{Math.floor(transaction.tax).toLocaleString()}円</Text>
               </View>
               <View style={styles.summaryRowLast}>
                 <Text style={styles.summaryLabel}>合計(税込)</Text>

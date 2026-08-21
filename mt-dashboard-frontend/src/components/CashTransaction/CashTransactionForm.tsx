@@ -367,12 +367,14 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                     {formatPrice(Number(metal.amount.toFixed(2)) * Math.floor(metal.unitPrice))}
                   </td>
                   <td className="text-right py-2">
+                    {/* 2026/08/21 星さん要望: 入力欄の数字がプロポーショナル幅(Inter)で小数点位置がずれるため、
+                        tabular-nums（等幅数字）を入力欄自身に付与して行ごとの桁を揃える */}
                     <input
                       type="number"
                       min="0"
                       max={metal.amount}
                       step="0.01"
-                      className="w-20 text-right border rounded p-1 responsive-text"
+                      className="w-20 text-right border rounded p-1 responsive-text tabular-nums"
                       value={inputValues[metal.name]}
                       onChange={(e) => handleAmountChange(metal.name, e.target.value)}
                       onBlur={() => handleBlur(metal.name)}
