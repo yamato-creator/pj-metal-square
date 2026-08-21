@@ -418,7 +418,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       {priceUpdateTime && (
         <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
       )}
-      {/* 2026/08/21 星さん要望: 「参考価格/担当者よりご連絡」および「受付時間帯」の注意書きを削除 */}
+      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※上記価格は消費税を含まない参考価格です。実際の売却価格は担当者よりご連絡いたします</div>
+      {/* 2026/08/21 星さん要望: 「受付時間帯10:00〜」の注意書きのみ削除（参考価格の注意書きは残す） */}
       
       <ConfirmationModal
         isOpen={isConfirmationOpen}
