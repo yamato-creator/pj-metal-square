@@ -270,7 +270,8 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                   {transaction.transaction_type !== '見積依頼' && (
                     <div className="mb-2 text-left max-w-2xl">
                       <div>小計 {transaction.subtotal.toLocaleString()}円</div>
-                      <div>適用税率 10% 消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
+                      {/* 2026/08/21 星さん要望③: 「適用税率10%消費税」→「消費税」に統一（PDFと表記を揃える） */}
+                      <div>消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
                     </div>
                   )}
 
