@@ -418,8 +418,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       {priceUpdateTime && (
         <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
       )}
-      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※上記価格は消費税を含まない参考価格です。実際の売却価格は担当者よりご連絡いたします</div>
-      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※見積もり依頼は10:00〜12:30、14:30〜15:30の時間帯のみ受付可能です</div>
+      {/* 2026/08/21 星さん要望: 「参考価格/担当者よりご連絡」および「受付時間帯」の注意書きを削除 */}
       
       <ConfirmationModal
         isOpen={isConfirmationOpen}

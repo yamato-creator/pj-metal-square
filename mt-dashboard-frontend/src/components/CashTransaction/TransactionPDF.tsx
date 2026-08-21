@@ -18,96 +18,97 @@ Font.register({
 
 // PDFのスタイル定義
 const styles = StyleSheet.create({
+  // 2026/08/21 星さん要望: 明細が1ページに収まるよう縦の余白・パディングを圧縮
   page: {
-    padding: 40,
-    fontSize: 12,
+    padding: 28,
+    fontSize: 11,
     fontFamily: 'NotoSansJP',
-    lineHeight: 1.5,
+    lineHeight: 1.35,
   },
   header: {
-    marginBottom: 30,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 20,
-    marginBottom: 30,
+    fontSize: 18,
+    marginBottom: 12,
     textAlign: 'left',
     borderBottomWidth: 1,
     borderBottomColor: '#000',
-    paddingBottom: 10,
+    paddingBottom: 6,
   },
   companyInfo: {
-    marginBottom: 20,
+    marginBottom: 8,
     textAlign: 'right',
   },
   companyName: {
-    fontSize: 14,
-    marginBottom: 5,
+    fontSize: 13,
+    marginBottom: 2,
   },
   registrationNumber: {
-    fontSize: 12,
-    marginBottom: 10,
+    fontSize: 11,
+    marginBottom: 0,
   },
   sectionTitle: {
-    fontSize: 14,
-    marginBottom: 10,
+    fontSize: 13,
+    marginBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: '#000',
-    paddingBottom: 5,
+    paddingBottom: 4,
   },
   customerInfoBox: {
     border: 1,
     borderColor: '#000',
-    padding: 10,
-    marginBottom: 20,
+    padding: 8,
+    marginBottom: 8,
   },
   customerInfoRow: {
     flexDirection: 'row',
-    marginBottom: 5,
+    marginBottom: 2,
   },
   customerLabel: {
     width: 80,
-    fontSize: 12,
+    fontSize: 11,
   },
   customerValue: {
-    fontSize: 12,
+    fontSize: 11,
   },
   transactionInfoBox: {
     border: 1,
     borderColor: '#000',
-    padding: 10,
-    marginBottom: 20,
+    padding: 8,
+    marginBottom: 8,
   },
   transactionInfoRow: {
     flexDirection: 'row',
-    marginBottom: 5,
+    marginBottom: 2,
   },
   transactionLabel: {
     width: 100,
-    fontSize: 12,
+    fontSize: 11,
   },
   transactionValue: {
-    fontSize: 12,
+    fontSize: 11,
   },
   table: {
     border: 1,
     borderColor: '#000',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#f0f0f0',
     borderBottomWidth: 1,
     borderBottomColor: '#000',
-    padding: 8,
+    padding: 6,
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#000',
-    padding: 8,
+    padding: 6,
   },
   tableCell: {
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'center',
   },
   metalNameCell: {
@@ -136,20 +137,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#000',
-    padding: 8,
+    padding: 6,
   },
   summaryRowLast: {
     flexDirection: 'row',
-    padding: 8,
+    padding: 6,
   },
   summaryLabel: {
     flex: 2,
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'left',
   },
   summaryValue: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'right',
   },
   depositTable: {
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     borderColor: '#000',
     width: '60%',
     marginHorizontal: 'auto',
-    marginBottom: 20,
+    marginBottom: 10,
   },
 });
 
