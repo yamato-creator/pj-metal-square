@@ -17,17 +17,16 @@ function renderAt(state: any) {
 }
 
 describe('CompletionScreen', () => {
-  test('見積依頼: 見出し・税抜表記・補足メッセージが表示される', () => {
+  test('売却: 見出し・税抜表記・戻るボタンが表示される', () => {
     renderAt({
       totalAmount: 120000,
-      message: '見積もり依頼を受け付けました。',
-      transactionType: '見積依頼',
+      message: '売却が完了しました。',
+      transactionType: '売却',
     });
-    expect(screen.getByText('見積もり依頼を受け付けました')).toBeInTheDocument();
-    expect(screen.getByText(/見積もり依頼金額\(参考・税抜\)/)).toBeInTheDocument();
+    expect(screen.getByText('売却完了')).toBeInTheDocument();
+    expect(screen.getByText(/売却金額\(税抜\)/)).toBeInTheDocument();
     expect(screen.getByText(/120,000円/)).toBeInTheDocument();
-    expect(screen.getByText(/担当者が内容を確認のうえ/)).toBeInTheDocument();
-    expect(screen.getByText('見積もり依頼画面に戻る')).toBeInTheDocument();
+    expect(screen.getByText('売却画面に戻る')).toBeInTheDocument();
   });
 
   test('預入: 預入完了の表示', () => {

@@ -35,14 +35,14 @@ const ConfirmationModal: React.FC<Props> = ({
     return Math.floor(price).toLocaleString();
   };
 
-  // 売却は「見積もり依頼」として扱う
-  const isQuoteRequest = !isDeposit && !isWithdraw;
+  // 現金売却フォーム（預入・現物返却以外）
+  const isSale = !isDeposit && !isWithdraw;
 
   // 取引タイプに応じたテキストを取得
   const getTransactionTypeText = () => {
     if (isDeposit) return '預入';
     if (isWithdraw) return '現物返却';
-    return '見積もり依頼を送信';
+    return '売却する';
   };
 
   const getAmountColumnLabel = () => {
@@ -54,18 +54,18 @@ const ConfirmationModal: React.FC<Props> = ({
   const getTotalLabel = () => {
     if (isDeposit) return '預入合計金額: ';
     if (isWithdraw) return '返却合計金額: ';
-    return '見積もり依頼金額(参考・税抜): ';
+    return '売却金額(税抜): ';
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
         <h2 className="text-xl font-bold mb-4">
-          {isQuoteRequest ? '見積もり依頼内容の確認' : '確認画面'}
+          {isSale ? '売却内容の確認' : '確認画面'}
         </h2>
-        {isQuoteRequest && (
+        {isSale && (
           <p className="mb-4 text-sm text-gray-600">
-            以下の内容で見積もり依頼を送信します。実際の買取価格は担当者よりご連絡いたします。
+            以下の内容で売却します。
           </p>
         )}
         <table className="w-full mb-4 tabular-nums">
@@ -117,7 +117,7 @@ const ConfirmationModal: React.FC<Props> = ({
             onClick={onConfirm}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            {isQuoteRequest ? getTransactionTypeText() : `${getTransactionTypeText()}を完了する`}
+            {isSale ? getTransactionTypeText() : `${getTransactionTypeText()}を完了する`}
           </button>
         </div>
       </div>

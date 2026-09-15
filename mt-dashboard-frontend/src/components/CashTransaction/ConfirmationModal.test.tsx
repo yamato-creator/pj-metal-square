@@ -9,7 +9,7 @@ const saleItems = [
 ];
 
 describe('ConfirmationModal', () => {
-  test('売却(見積依頼)時は「見積もり依頼を送信」ボタンと参考税抜表記になる', () => {
+  test('売却時は「売却する」ボタンと売却金額(税抜)表記になる', () => {
     render(
       <ConfirmationModal
         isOpen
@@ -19,9 +19,9 @@ describe('ConfirmationModal', () => {
         totalAmount={120000}
       />
     );
-    expect(screen.getByText('見積もり依頼内容の確認')).toBeInTheDocument();
-    expect(screen.getByText(/見積もり依頼金額\(参考・税抜\)/)).toBeInTheDocument();
-    expect(screen.getByText('見積もり依頼を送信')).toBeInTheDocument();
+    expect(screen.getByText('売却内容の確認')).toBeInTheDocument();
+    expect(screen.getByText(/売却金額\(税抜\)/)).toBeInTheDocument();
+    expect(screen.getByText('売却する')).toBeInTheDocument();
     // 税抜の金額がそのまま出ること（表+合計で複数）
     const matches = screen.getAllByText(/120,000円/);
     expect(matches.length).toBeGreaterThanOrEqual(1);

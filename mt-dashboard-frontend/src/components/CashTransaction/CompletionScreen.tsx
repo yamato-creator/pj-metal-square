@@ -23,12 +23,12 @@ const CompletionScreen: React.FC = () => {
     return Math.floor(price).toLocaleString();
   };
 
-  // 取引タイプ判定（「見積依頼」がデフォルト。旧「売却」も見積依頼として扱う）
-  const isQuoteRequest = !state.transactionType || state.transactionType === '見積依頼' || state.transactionType === '売却';
+  // 取引タイプ判定（売却がデフォルト。旧「見積依頼」も売却完了として表示）
+  const isSale = !state.transactionType || state.transactionType === '売却' || state.transactionType === '見積依頼';
   const isDeposit = state.transactionType === '預入';
 
-  const heading = isQuoteRequest ? '見積もり依頼を受け付けました' : '決済完了';
-  const amountLabel = isQuoteRequest ? '見積もり依頼金額(参考・税抜)' : isDeposit ? '預入合計金額' : '返却合計金額';
+  const heading = isSale ? '売却完了' : '決済完了';
+  const amountLabel = isSale ? '売却金額(税抜)' : isDeposit ? '預入合計金額' : '返却合計金額';
 
   const handleBackToTop = () => {
     navigate('/cash-transaction');
@@ -42,16 +42,11 @@ const CompletionScreen: React.FC = () => {
         <p className="font-bold mb-6">
           {amountLabel}: {formatPrice(state.totalAmount)}円
         </p>
-        {isQuoteRequest && (
-          <p className="text-sm text-gray-600 mb-6">
-            担当者が内容を確認のうえ、改めて正式な見積もりをご連絡いたします。
-          </p>
-        )}
         <button
           onClick={handleBackToTop}
           className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
         >
-          {isQuoteRequest ? '見積もり依頼画面に戻る' : '現金決済画面に戻る'}
+          {isSale ? '売却画面に戻る' : '現金決済画面に戻る'}
         </button>
       </div>
     </div>

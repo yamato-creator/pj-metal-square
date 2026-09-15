@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 import logging
+import math
 import pandas as pd
 from typing import Dict, Optional, List
 from ...models.transaction import TransactionCreate, DepositCreate, WithdrawCreate
@@ -187,17 +188,21 @@ async def _cancel_transaction(transaction_id: str, current_user: dict):
         )
 
 @router.post("/sale")
-async def create_sale_quote_request(
+async def create_sale_transaction(
     transaction_data: TransactionCreate,
     current_user: dict = Depends(verify_api_key),
     _bh: None = Depends(require_business_hours),
 ):
-    """売却の見積もり依頼を作成（資産は減らさず、スクエアへ通知のみ）"""
+    """売却取引を作成（保有資産を減算し、お客様＋管理者へ売却完了メールを送信）。
+
+    2026/9/15 星さん確定: 従来の「見積もり依頼」フローを廃止し、お客様が押した
+    時点でアプリ表示価格のまま売却成立とする元の仕様へ戻したもの。
+    """
     async with user_lock(current_user["user_id"]):
-        return await _create_sale_quote_request(transaction_data, current_user)
+        return await _create_sale_transaction(transaction_data, current_user)
 
 
-async def _create_sale_quote_request(transaction_data: TransactionCreate, current_user: dict):
+async def _create_sale_transaction(transaction_data: TransactionCreate, current_user: dict):
     try:
         transaction_service = TransactionService()
         asset_service = AssetService()
@@ -206,7 +211,8 @@ async def _create_sale_quote_request(transaction_data: TransactionCreate, curren
         # 共通の取引IDを生成（全ての金属で使用）
         transaction_id = f"TRS{jst_compact()}"
 
-        # 1. 保有量チェックと見積もり依頼記録（資産更新はしない）
+        # 1. 事前チェック：全金属の保有量が売却希望量以上かをまとめて確認
+        #    （資産を1つも減らす前に検証し、部分失敗を最小化する）
         current_assets = asset_service.fetch_user_assets_with_validation(current_user["user_id"])
         if current_assets is None:
             raise HTTPException(
@@ -214,93 +220,127 @@ async def _create_sale_quote_request(transaction_data: TransactionCreate, curren
                 detail="このユーザーは退会済みです"
             )
 
-        # 既存の「見積依頼」中（未確定）の数量を金属別に合計して、二重消費を防ぐ。
-        # 例: 金 5g 保有 → 既に 4g 見積依頼中 → 残り見積可能は 1g のみ。
-        all_user_tx = transaction_service.fetch_transactions(current_user["user_id"]) or []
-        pending_by_metal: Dict[str, float] = {}
-        for tx in all_user_tx:
-            if tx.get("status") == "見積依頼":
-                for item in tx.get("items", []) or []:
-                    pending_by_metal[item["nameJp"]] = pending_by_metal.get(item["nameJp"], 0.0) + float(item["amount"])
-
+        # 同一金属が複数行で送られてくるケースに備え、金属ごとに希望量を合計して検証
+        requested_by_metal: Dict[str, float] = {}
         for metal in transaction_data.metals:
-            current_asset = next(
-                (asset for asset in current_assets if asset["metal_type"] == metal.metal_type),
-                None
+            requested_by_metal[metal.metal_type] = (
+                requested_by_metal.get(metal.metal_type, 0.0) + float(metal.amount)
             )
 
+        for metal_type, requested_amount in requested_by_metal.items():
+            current_asset = next(
+                (asset for asset in current_assets if asset["metal_type"] == metal_type),
+                None
+            )
             if not current_asset:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"{metal.metal_type}の保有データが見つかりません"
+                    detail=f"{metal_type}の保有データが見つかりません"
                 )
-
-            # 「実保有量 − 見積依頼中の累計」が希望量以上か確認（多重消費防止）
-            current_amount = float(current_asset["weight_g"])
-            already_pending = pending_by_metal.get(metal.metal_type, 0.0)
-            available = current_amount - already_pending
-            requested_amount = float(metal.amount)
-
-            if available < requested_amount:
+            if float(current_asset["weight_g"]) < requested_amount:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"{metal.metal_type}の売却希望量が保有量(残{available:.2f}g)を超えています"
+                    detail=f"{metal_type}の売却量が保有量を超えています"
                 )
 
-            # 取引記録（ステータス「見積依頼」）
+        # 2. 取引記録＋資産減算。Sheets API はアトミックでないため、
+        #    途中失敗時は減算済みの資産をベストエフォートで元に戻す。
+        asset_rollback = []  # (user_id, metal_type, original_amount) のリスト
+
+        def _rollback():
+            for u_id, m_type, orig in reversed(asset_rollback):
+                try:
+                    asset_service.update_asset_after_sale(u_id, m_type, orig)
+                except Exception as rb_err:
+                    logger.error(f"資産 ロールバック失敗 metal={m_type}: {rb_err}")
+
+        for metal in transaction_data.metals:
+            # 取引記録（ステータス「売却」）
             transaction_values = {
                 "user_id": current_user["user_id"],
-                "transaction_type": "見積依頼",
+                "transaction_type": "売却",
                 "metal_type": metal.metal_type,
                 "weight_g": str(metal.amount),
                 "unit_price": str(metal.unit_price),
                 "total_amount": str(metal.total),
                 "transaction_id": transaction_id,
                 "company_name": "スクエア",
-                "status": "見積依頼"
+                "status": "売却",
             }
-
             if not transaction_service.create_transaction(transaction_values):
+                _rollback()
                 raise HTTPException(
                     status_code=500,
-                    detail=f"{metal.metal_type}の見積もり依頼の記録に失敗しました"
+                    detail=f"{metal.metal_type}の売却処理に失敗しました"
                 )
 
-        # 2. メール送信処理（ユーザーへ受付通知 + スクエア管理者へ依頼通知）
+            # 最新の保有量を取得して減算（ロック内なので安全）
+            latest_assets = asset_service.fetch_user_assets_with_validation(current_user["user_id"])
+            if latest_assets is None:
+                _rollback()
+                raise HTTPException(
+                    status_code=401,
+                    detail="このユーザーは退会済みです"
+                )
+            latest_asset = next(
+                (asset for asset in latest_assets if asset["metal_type"] == metal.metal_type),
+                None
+            )
+            original_amount = float(latest_asset["weight_g"]) if latest_asset else 0.0
+            new_amount = original_amount - float(metal.amount)
+            if new_amount < 0:
+                _rollback()
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{metal.metal_type}の売却量が保有量を超えています"
+                )
+            if not asset_service.update_asset_after_sale(
+                current_user["user_id"],
+                metal.metal_type,
+                new_amount
+            ):
+                _rollback()
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"{metal.metal_type}の資産更新に失敗しました"
+                )
+            asset_rollback.append((current_user["user_id"], metal.metal_type, original_amount))
+
+        # 3. 売却完了メール（お客様＋管理者へ1通ずつ）
         try:
-            quote_details = "\n".join([
-                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.2f}g (参考価格 {int(float(metal.unit_price))}円/g)"
+            sales_details = "\n".join([
+                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.2f}g ({int(float(metal.unit_price))}円/g)"
                 for metal in transaction_data.metals
             ])
-
-            await email_sender.send_sale_quote_request_email(
+            subtotal = int(transaction_data.total_amount)
+            tax_yen = int(math.floor(transaction_data.tax))
+            await email_sender.send_sale_completion_email(
                 user_email=current_user["email"],
-                username=current_user.get("user_name", ""),
-                user_id=current_user["user_id"],
-                quote_details=quote_details,
-                reference_total=int(transaction_data.total_amount),
-                transaction_id=transaction_id,
+                sales_details=sales_details,
+                total_amount=subtotal,
+                tax=tax_yen,
+                total=subtotal + tax_yen,
             )
-
         except Exception as e:
             logger.error(f"メール送信エラー: {str(e)}")
             # メール送信エラーは非クリティカルとして扱う
 
-        # 3. 資産情報は変更なしだが、フロント更新用に現在の資産情報を返す
+        # 4. 更新後の資産情報を取得して返却
+        updated_assets = asset_service.fetch_user_assets_with_validation(current_user["user_id"])
         return {
             "status": "success",
-            "message": "見積もり依頼を受け付けました",
+            "message": "売却処理が完了しました",
             "transaction_id": transaction_id,
-            "updated_assets": current_assets
+            "updated_assets": updated_assets
         }
 
     except HTTPException:
         raise
     except Exception as e:
-        logging.error(f"見積もり依頼エラー: {str(e)}")
+        logging.error(f"売却処理エラー: {str(e)}")
         raise HTTPException(
             status_code=500,
-            detail="見積もり依頼の処理に失敗しました"
+            detail="売却処理に失敗しました"
         )
 
 @router.post("/deposit")

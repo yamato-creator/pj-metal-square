@@ -82,7 +82,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   const menuItems = [
     { path: '/dashboard', emoji: <img src="/icons/home-icon.png" alt="トップ" className="w-5 h-5" />, label: 'トップ' },
-    { path: '/cash-transaction', emoji: <img src="/icons/yen-icon.png" alt="見積もり依頼" className="w-5 h-5" />, label: '見積もり依頼' },
+    { path: '/cash-transaction', emoji: <img src="/icons/yen-icon.png" alt="売却" className="w-5 h-5" />, label: '売却' },
     // 2026/08/21 星さん要望: 現物返却を非表示（機能・ヘッダーとも）。後日再開の可能性があるため削除せずコメントアウト。
     // { path: '/withdraw-transaction', emoji: <img src="/icons/gold-icon.png" alt="現物返却" className="w-5 h-5" />, label: '現物返却' },
     { path: '/transaction-history', emoji: <img src="/icons/document-icon.png" alt="取引履歴" className="w-5 h-5" />, label: '取引履歴' },

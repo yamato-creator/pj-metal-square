@@ -264,7 +264,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
 
     if (result) {
       try {
-        // 成功した場合は見積もり依頼データをAPIに送信
+        // 成功した場合は売却データをAPIに送信
         const metalTypeMap: { [key: string]: string } = {
           'Au': '金',
           'Pt': 'プラチナ',
@@ -272,7 +272,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
           'Ag': '銀'
         };
 
-        // 見積もり依頼アイテムを準備
+        // 売却アイテムを準備
         const saleMetals = metals
           .filter(metal => saleAmounts[metal.name] > 0)
           .map(metal => ({
@@ -302,28 +302,28 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         }
 
         const data = await response.json();
-        console.log('見積もり依頼API成功:', data);
+        console.log('売却API成功:', data);
 
-        // 見積もり依頼完了後の処理
+        // 売却完了後の処理
         onSaleComplete(data);
 
         // 完了画面へ遷移
         navigate('/completion', {
           state: {
             totalAmount: totalAmount,
-            message: '見積もり依頼を受け付けました。担当者よりご連絡いたします。',
+            message: '売却が完了しました。',
             isTaxIncluded: false,
-            transactionType: '見積依頼'
+            transactionType: '売却'
           }
         });
       } catch (error) {
-        console.error('見積もり依頼エラー:', error);
-        alert('見積もり依頼の送信に失敗しました。' + (error instanceof Error ? error.message : ''));
+        console.error('売却エラー:', error);
+        alert('売却処理に失敗しました。' + (error instanceof Error ? error.message : ''));
       } finally {
         setIsProcessing(false);
       }
     } else {
-      alert('見積もり依頼の送信に失敗しました。');
+      alert('売却処理に失敗しました。');
       setIsProcessing(false);
     }
   };
@@ -340,10 +340,10 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
 
   return (
     <div className="responsive-container">
-      <h1 className="responsive-heading mb-4">売却見積もり依頼</h1>
+      <h1 className="responsive-heading mb-4">売却</h1>
       <div className="responsive-card bg-white">
         <h2 className="responsive-subheading mb-4">資産状況と売却希望数量入力</h2>
-        <p className="responsive-text text-gray-600 mb-2">※ 保有量を超える見積もり依頼はできません</p>
+        <p className="responsive-text text-gray-600 mb-2">※ 保有量を超える売却はできません</p>
         <div className="responsive-table">
           <table className="w-full tabular-nums">
             <thead>
@@ -393,7 +393,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         </div>
         <div className="flex flex-col sm:flex-row justify-between items-center mt-4">
           <div className="text-right responsive-text mb-2 sm:mb-0">
-            <span className="font-bold">見積もり依頼金額(参考): </span>
+            <span className="font-bold">売却金額: </span>
             <span>{totalAmount === 0 ? '0' : Math.floor(totalAmount).toLocaleString()}円</span>
           </div>
           <div className="space-x-2">
@@ -408,7 +408,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                 onClick={handleProceed}
                 className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
               >
-                見積もり依頼
+                売却する
               </button>
             )}
           </div>
@@ -418,8 +418,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
       {priceUpdateTime && (
         <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
       )}
-      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※上記価格は消費税を含まない参考価格です。相場の変動があるので、実際の売却価格は担当者よりご連絡いたします</div>
-      {/* 2026/08/21 星さん要望: 「受付時間帯10:00〜」の注意書きのみ削除（参考価格の注意書きは文言変更のうえ残す） */}
+      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※上記価格は消費税を含まない価格です</div>
+      {/* 2026/09/15 星さん確定: 見積もり依頼→売却完結に戻したため「参考価格・担当者よりご連絡」表記を撤去し、押した時点でこの価格で確定 */}
       
       <ConfirmationModal
         isOpen={isConfirmationOpen}
