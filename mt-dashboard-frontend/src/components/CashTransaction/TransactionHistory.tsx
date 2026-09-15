@@ -199,8 +199,7 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 {/* 預入や現物返却の場合は合計金額を表示しない */}
                 {transaction.transaction_type !== '預入' && transaction.transaction_type !== '現物返却' && (
                   <span className="font-bold">
-                    {transaction.transaction_type === '見積依頼' ? '参考金額(税抜): ' : '合計: '}
-                    {(transaction.transaction_type === '見積依頼' ? transaction.subtotal : transaction.total).toLocaleString()}円
+                    合計: {transaction.total.toLocaleString()}円
                   </span>
                 )}
                 {/* PDF出力ボタン: 売却の完了取引のみ、かつ取引日の24時を過ぎた場合に表示 */}
@@ -267,27 +266,19 @@ const TransactionHistory: React.FC<Props> = ({ transactions, onTransactionUpdate
                 </div>
               ) : (
                 <div>
-                  {transaction.transaction_type !== '見積依頼' && (
-                    <div className="mb-2 text-left max-w-2xl">
-                      <div>小計 {transaction.subtotal.toLocaleString()}円</div>
-                      {/* 2026/08/21 星さん要望③: 「適用税率10%消費税」→「消費税」に統一（PDFと表記を揃える） */}
-                      <div>消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
-                    </div>
-                  )}
+                  <div className="mb-2 text-left max-w-2xl">
+                    <div>小計 {transaction.subtotal.toLocaleString()}円</div>
+                    {/* 2026/08/21 星さん要望③: 「適用税率10%消費税」→「消費税」に統一（PDFと表記を揃える） */}
+                    <div>消費税 {Math.floor(transaction.tax).toLocaleString()}円</div>
+                  </div>
 
                   <table className="w-full max-w-2xl mx-auto tabular-nums">
                     <thead>
                       <tr>
                         <th className="text-left">金属名</th>
-                        <th className="text-right">
-                          {transaction.transaction_type === '見積依頼' ? '希望量' : '売却量'}
-                        </th>
-                        <th className="text-right">
-                          {transaction.transaction_type === '見積依頼' ? '参考価格' : '買取価格'}
-                        </th>
-                        <th className="text-right">
-                          {transaction.transaction_type === '見積依頼' ? '参考金額' : '金額'}
-                        </th>
+                        <th className="text-right">売却量</th>
+                        <th className="text-right">買取価格</th>
+                        <th className="text-right">金額</th>
                       </tr>
                     </thead>
                     <tbody>
