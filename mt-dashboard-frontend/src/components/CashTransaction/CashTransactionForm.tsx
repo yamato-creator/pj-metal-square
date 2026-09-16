@@ -403,14 +403,18 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
             >
               計算
             </button>
-            {showTransactionButton && (
-              <button
-                onClick={handleProceed}
-                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
-              >
-                売却する
-              </button>
-            )}
+            {/* 営業時間外はボタンを消さず、表示したまま押せない状態にする（2026/09/16 星さん要望） */}
+            <button
+              onClick={handleProceed}
+              disabled={!showTransactionButton || isProcessing}
+              className={`px-4 py-2 rounded text-white ${
+                showTransactionButton && !isProcessing
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {showTransactionButton ? '売却する' : '売却できない時間です'}
+            </button>
           </div>
         </div>
       </div>
