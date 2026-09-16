@@ -600,23 +600,27 @@ function updateSpreadsheet(priceData, shouldAddHistory = true) {
 // ===================================================================
 
 /**
- * 20分間隔ポーリングトリガーを設定（初回セットアップ用）
+ * 5分間隔ポーリングトリガーを設定（checkNewEmailsのみ入れ替え）
  */
 function setupPollingTrigger() {
-  // 既存のトリガーをすべて削除
+  // ⚠️ このGASプロジェクトには onEditInstalled(売却完了メール) / onChange(usersコピー同期)
+  //    など他機能のトリガーも同居している。全削除すると他機能が壊れるため、
+  //    checkNewEmails のトリガーだけを入れ替える。
   const triggers = ScriptApp.getProjectTriggers();
   triggers.forEach(t => {
-    ScriptApp.deleteTrigger(t);
-    Logger.log(`→既存トリガー削除: ${t.getHandlerFunction()} (ID: ${t.getUniqueId()})`);
+    if (t.getHandlerFunction() === 'checkNewEmails') {
+      ScriptApp.deleteTrigger(t);
+      Logger.log(`→既存checkNewEmailsトリガー削除 (ID: ${t.getUniqueId()})`);
+    }
   });
 
-  // 20分間隔トリガーを作成
+  // 5分間隔トリガーを作成
   ScriptApp.newTrigger('checkNewEmails')
     .timeBased()
-    .everyMinutes(15)
+    .everyMinutes(5)
     .create();
 
-  Logger.log('✅ 15分ポーリングトリガーを作成しました');
+  Logger.log('✅ 5分ポーリングトリガーを作成しました');
   Logger.log('営業時間（平日8:00-18:00）のみ処理を実行します');
 }
 
