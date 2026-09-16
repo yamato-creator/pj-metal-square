@@ -9,7 +9,7 @@ from ...services.asset_service import AssetService
 from ..utils.auth import verify_api_key
 from ..utils.email import EmailSender
 from ..utils.time import jst_str, jst_compact
-from ..utils.access_time import require_business_hours
+from ..utils.access_time import require_business_hours, require_sale_time
 from ..utils.user_lock import user_lock
 
 # ルーターの設定
@@ -191,7 +191,7 @@ async def _cancel_transaction(transaction_id: str, current_user: dict):
 async def create_sale_transaction(
     transaction_data: TransactionCreate,
     current_user: dict = Depends(verify_api_key),
-    _bh: None = Depends(require_business_hours),
+    _st: None = Depends(require_sale_time),
 ):
     """売却取引を作成（保有資産を減算し、お客様＋管理者へ売却完了メールを送信）。
 
@@ -320,6 +320,8 @@ async def _create_sale_transaction(transaction_data: TransactionCreate, current_
                 total_amount=subtotal,
                 tax=tax_yen,
                 total=subtotal + tax_yen,
+                username=current_user.get("user_name", ""),
+                user_id=current_user["user_id"],
             )
         except Exception as e:
             logger.error(f"メール送信エラー: {str(e)}")

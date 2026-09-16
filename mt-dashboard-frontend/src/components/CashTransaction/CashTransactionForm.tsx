@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
 import ConfirmationModal from './ConfirmationModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { isTransactionButtonVisible } from '../../utils/timeRestriction';
+import { isSaleAllowedNow } from '../../utils/timeRestriction';
 
 interface Metal {
   name: string;
@@ -54,18 +54,17 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTransactionButton, setShowTransactionButton] = useState(false);
 
-  // 時間制限チェックを定期的に実行
+  // 売却可能時間チェック（相場更新後〜午前12:30／午後15:30）を定期的に実行
   useEffect(() => {
     const checkButtonVisibility = () => {
-      const isVisible = isTransactionButtonVisible();
-      setShowTransactionButton(isVisible);
+      setShowTransactionButton(isSaleAllowedNow(priceUpdateTime));
     };
 
     checkButtonVisibility(); // 初回チェック
-    const interval = setInterval(checkButtonVisibility, 60000); // 1分ごとにチェック
+    const interval = setInterval(checkButtonVisibility, 30000); // 30秒ごとにチェック
 
     return () => clearInterval(interval);
-  }, []);
+  }, [priceUpdateTime]);
 
   const formatPrice = (price: number) => {
     if (price === 0) return '0円';
@@ -423,7 +422,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
       )}
       <div className="mt-1 text-left text-gray-500 text-xl font-bold">※上記価格は消費税を含まない価格です</div>
-      {/* 2026/09/15 星さん確定: 見積もり依頼→売却完結に戻したため「参考価格・担当者よりご連絡」表記を撤去し、押した時点でこの価格で確定 */}
+      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※売却は相場更新後〜午前12:30／午後は相場更新後〜15:30の間のみ可能です</div>
+      {/* 2026/09/16 星さん要望: 売却は相場更新後のみ可能（更新前の古い価格での確定を防ぐ）。判定は isSaleAllowedNow */}
       
       <ConfirmationModal
         isOpen={isConfirmationOpen}

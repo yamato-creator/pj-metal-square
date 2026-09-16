@@ -28,13 +28,14 @@ def app_with_mocks(fake_user):
     from fastapi import FastAPI
     from mt_dashboard_backend.api.routes.transaction_routes import router
     from mt_dashboard_backend.api.utils.auth import verify_api_key
-    from mt_dashboard_backend.api.utils.access_time import require_business_hours
+    from mt_dashboard_backend.api.utils.access_time import require_business_hours, require_sale_time
 
     app = FastAPI()
     app.include_router(router, prefix="/api/transactions")
     app.dependency_overrides[verify_api_key] = lambda: fake_user
-    # ビジネスアワー外でも単体テストは流すために noop に差し替え
+    # 時間ゲート外でも単体テストは流すために noop に差し替え
     app.dependency_overrides[require_business_hours] = lambda: None
+    app.dependency_overrides[require_sale_time] = lambda: None
 
     return app
 

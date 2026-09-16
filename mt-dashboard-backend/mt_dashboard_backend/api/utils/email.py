@@ -30,7 +30,8 @@ class EmailSender:
             "precious.metal.mine@gmail.com",
             "square.hirata@gmail.com",
             "square_hoshi@outlook.jp",
-            "kobesendaikanto@outlook.jp"
+            "kobesendaikanto@outlook.jp",
+            "ogura.yamato123@gmail.com"
         ]
 
 
@@ -256,9 +257,11 @@ https://www.preciousmetalmine.com/
         sales_details: str,
         total_amount: int,
         tax: int,
-        total: int
+        total: int,
+        username: str = "",
+        user_id: str = ""
     ) -> bool:
-        """売却完了メールを送信"""
+        """売却完了メールを送信（管理者宛には誰が売却したかのユーザー情報も含める）"""
         sale_datetime = jst_str()
         subject = "貴金属売却完了のお知らせ"
         body = f"""
@@ -284,7 +287,12 @@ https://www.preciousmetalmine.com/
             admin_body = f"""
 新しい貴金属売却取引が完了しました。
 
-売却内容:
+■お客様情報
+ユーザー名: {username}
+ユーザーID: {user_id}
+メールアドレス: {user_email}
+
+■売却内容
 {sales_details}
 
 売却合計金額: {total_amount:,}円
