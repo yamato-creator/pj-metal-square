@@ -388,7 +388,7 @@ function MainContent() {
       }));
 
     const subtotal = Math.floor(saleItems.reduce((sum, item) => sum + item.total, 0));
-    const tax = Math.floor(subtotal * 0.1);
+    const tax = Math.round(subtotal * 0.1); // 消費税は四捨五入（2026/09/26 星さん指示・Excel ROUNDと統一）
     const total = subtotal + tax;
 
     // 一時的な表示用のトランザクションオブジェクト
@@ -459,7 +459,7 @@ function MainContent() {
       (sum, [key, amount]) => sum + amount * Math.floor(metals.find(m => m.name === key)?.unitPrice || 0),
       0
     ));
-    const tax = Math.floor(subtotal * 0.1);
+    const tax = Math.round(subtotal * 0.1); // 消費税は四捨五入（2026/09/26 星さん指示・Excel ROUNDと統一）
     return { subtotal, tax, total: subtotal + tax };
   };
 

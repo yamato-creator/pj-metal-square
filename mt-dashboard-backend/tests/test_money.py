@@ -9,26 +9,31 @@ from mt_dashboard_backend.api.utils.money import (
 
 
 class TestCalcTaxYen:
+    """消費税は小数点第1位を四捨五入（2026/09/26 星さん指示・Excel ROUND と一致）。"""
+
     def test_basic(self):
         assert calc_tax_yen(1000) == 100
-        assert calc_tax_yen(1009) == 100  # 100.9 → 100 切り捨て
+        assert calc_tax_yen(1009) == 101  # 100.9 → 101 四捨五入
+
+    def test_hoshi_real_case_one_yen_gap(self):
+        # 星さんが指摘した実例: 77,567×10% = 7,756.7 → 旧切り捨て 7,756 / 正 7,757
+        assert calc_tax_yen(77567) == 7757
+        assert calc_tax_yen(77564) == 7756  # .4 は切り下げ
+        assert calc_tax_yen(77565) == 7757  # .5 は切り上げ（ROUND_HALF_UP）
 
     def test_string_input(self):
-        assert calc_tax_yen("12345") == 1234
+        assert calc_tax_yen("12345") == 1235  # 1234.5 → 1235
 
     def test_float_input_no_drift(self):
-        # 旧コード: math.floor(0.1 * 1000) は 100 だが、
-        # math.floor(0.1 * 10) は 0（0.999... になる）。これを Decimal で防止。
-        assert calc_tax_yen(10) == 1  # 1.0 を切り捨て
-        # 0.1 を float で扱うと 0.1 * 10 = 1.0000000000000002 → floor=1 だが
-        # 0.1 * 3 = 0.30000000000000004 → 0 → 元の math.floor(3 * 0.1)も 0
-        assert calc_tax_yen(3) == 0
+        # float の 0.1 誤差（0.1*3=0.30000000000000004 等）を Decimal で防止。
+        assert calc_tax_yen(10) == 1
+        assert calc_tax_yen(3) == 0  # 0.3 → 0
 
     def test_custom_rate(self):
         assert calc_tax_yen(1000, "0.08") == 80
 
     def test_decimal_input(self):
-        assert calc_tax_yen(Decimal("9999")) == 999
+        assert calc_tax_yen(Decimal("9999")) == 1000  # 999.9 → 1000
 
 
 class TestCalcSubtotalYen:

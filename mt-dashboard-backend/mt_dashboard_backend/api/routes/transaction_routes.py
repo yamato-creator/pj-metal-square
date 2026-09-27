@@ -10,6 +10,7 @@ from ..utils.auth import verify_api_key
 from ..utils.email import EmailSender
 from ..utils.time import jst_str, jst_compact
 from ..utils.access_time import require_business_hours, require_sale_time
+from ..utils.money import calc_tax_yen
 from ..utils.user_lock import user_lock
 
 # ルーターの設定
@@ -313,7 +314,7 @@ async def _create_sale_transaction(transaction_data: TransactionCreate, current_
                 for metal in transaction_data.metals
             ])
             subtotal = int(transaction_data.total_amount)
-            tax_yen = int(math.floor(transaction_data.tax))
+            tax_yen = calc_tax_yen(subtotal)  # 消費税は四捨五入（2026/09/26 星さん指示）。フロント値は信用せずサーバーで再計算
             await email_sender.send_sale_completion_email(
                 user_email=current_user["email"],
                 sales_details=sales_details,

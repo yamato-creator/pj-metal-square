@@ -4,7 +4,7 @@
 スプシは値を文字列で持っているため、入力は str/float/int いずれも受け付ける。
 内部演算は Decimal、出力は int（円は整数）で返す方針。
 """
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 from typing import Union
 
 Number = Union[int, float, str, Decimal]
@@ -27,10 +27,15 @@ def _to_decimal(value: Number) -> Decimal:
 
 
 def calc_tax_yen(subtotal: Number, rate: Number = "0.1") -> int:
-    """消費税を整数（円）で返す。切り捨て、Decimal 演算で誤差ゼロ。"""
+    """消費税を整数（円）で返す。小数点第1位を四捨五入、Decimal 演算で誤差ゼロ。
+
+    2026/09/26 星さん指示: 消費税は「四捨五入」（星さんの Excel = ROUND と一致させる）。
+    従来の切り捨て(ROUND_DOWN)だと 77,567×10%=7,756.7 → 7,756 となり1円ズレていた。
+    ※ 金額（重量×単価）の方は従来どおり切り捨て(calc_subtotal_yen)のまま。
+    """
     sub = _to_decimal(subtotal)
     r = _to_decimal(rate)
-    return int((sub * r).quantize(Decimal("1"), rounding=ROUND_DOWN))
+    return int((sub * r).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
 def calc_subtotal_yen(grams: Number, unit_price_yen_per_g: Number) -> int:

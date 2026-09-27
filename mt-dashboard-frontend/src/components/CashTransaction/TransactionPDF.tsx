@@ -313,7 +313,7 @@ export const TransactionPDF: React.FC<TransactionPDFProps> = ({ transaction, use
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>消費税</Text>
-                <Text style={styles.summaryValue}>{Math.floor(transaction.tax).toLocaleString()}円</Text>
+                <Text style={styles.summaryValue}>{Math.round(transaction.tax).toLocaleString()}円</Text>
               </View>
               <View style={styles.summaryRowLast}>
                 <Text style={styles.summaryLabel}>合計(税込)</Text>

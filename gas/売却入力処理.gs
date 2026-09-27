@@ -179,7 +179,7 @@ function updateSalePreview(saleSheet) {
       saleStatus_('売却量と買取単価を入力すると、ここに金額プレビューが表示されます。');
       return;
     }
-    const tax = Math.floor(subtotal * 0.1);
+    const tax = Math.round(subtotal * 0.1); // 消費税は四捨五入（2026/09/26 星さん指示）
     const total = subtotal + tax;
     saleStatus_('🔎【確認】内容がよければ「4. 売却確定」で「確定」を選択してください。\n'
       + lines.join('\n')
@@ -350,7 +350,7 @@ function processSale() {
       saleLines.push(`${metalName}: ${amount}g × ${Math.floor(unitPrice).toLocaleString()}円/g = ${lineTotal.toLocaleString()}円`);
     }
 
-    const tax = Math.floor(subtotalAll * 0.1);
+    const tax = Math.round(subtotalAll * 0.1); // 消費税は四捨五入（2026/09/26 星さん指示）
     const total = subtotalAll + tax;
 
     // 7. メール送信（ユーザー + 管理者）
