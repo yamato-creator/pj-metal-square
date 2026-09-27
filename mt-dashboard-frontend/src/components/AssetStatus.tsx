@@ -108,7 +108,7 @@ const AssetStatus: React.FC<Props> = ({ metals, onUpdateAssets, isLoading, price
       {priceUpdateTime && (
         <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
       )}
-      <div className="mt-2 text-left text-gray-500 text-xl font-bold">※上記価格は消費税は含まれておりません</div>
+      <div className="mt-2 text-left text-gray-500 text-xl font-bold">※上記価格は消費税を含まない価格です</div>
     </div>
   );
 };
