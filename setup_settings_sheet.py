@@ -72,7 +72,13 @@ def ensure_username_column(s):
         spreadsheetId=SPREADSHEET_ID, range="transactions!K1", valueInputOption="USER_ENTERED",
         body={"values": [[USERNAME_FORMULA]]},
     ).execute()
-    print("[written] transactions!K1 に ユーザー名 の ARRAYFORMULA を設定（users!A:B から自動）")
+    # 列追加時に J列の書式（;;;"取引会社名" のラベル表示形式）を継承して K1 の表示が「取引会社名」に
+    # なってしまうため、K1 だけ書式をプレーンテキストに戻して数式の値「ユーザー名」を表示させる
+    s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [{"repeatCell": {
+        "range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 10, "endColumnIndex": 11},
+        "cell": {"userEnteredFormat": {"numberFormat": {"type": "TEXT", "pattern": "@"}}},
+        "fields": "userEnteredFormat.numberFormat"}}]}).execute()
+    print("[written] transactions!K1 に ユーザー名 の ARRAYFORMULA を設定＋K1書式をテキストに（users!A:B から自動）")
 
 
 if __name__ == "__main__":
