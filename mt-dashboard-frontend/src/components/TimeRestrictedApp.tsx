@@ -40,8 +40,9 @@ const RestrictedPage: React.FC<{ timeInfo: TimeCheckResponse }> = ({ timeInfo })
       <h1 className="text-2xl font-bold text-gray-800 mb-4">
         メンテナンス中
       </h1>
-      <p className="text-gray-600 mb-4">
-        このサイトは10:00-24:00の間のみご利用いただけます。
+      {/* 2026/09/26 星さん要望: 24時間開放。メンテナンス中のみ表示。文言はスプシ settings!B3 から（バックエンド経由） */}
+      <p className="text-gray-600 mb-4 whitespace-pre-line">
+        {timeInfo.message}
       </p>
     </div>
   </div>

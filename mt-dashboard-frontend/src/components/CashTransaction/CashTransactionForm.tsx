@@ -422,6 +422,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
         <div className="mt-2 text-left text-gray-500 text-xl font-bold">※{formatPriceUpdateTime()}</div>
       )}
       <div className="mt-1 text-left text-gray-500 text-xl font-bold">※上記価格は消費税を含まない価格です</div>
+      <div className="mt-1 text-left text-gray-500 text-xl font-bold">※買取価格の予定更新時刻：午前10時前後／午後14:30前後</div>
       <div className="mt-1 text-left text-gray-500 text-xl font-bold">※売却は相場更新後〜午前12:30／午後は相場更新後〜15:30の間のみ可能です</div>
       {/* 2026/09/16 星さん要望: 売却は相場更新後のみ可能（更新前の古い価格での確定を防ぐ）。判定は isSaleAllowedNow */}
       

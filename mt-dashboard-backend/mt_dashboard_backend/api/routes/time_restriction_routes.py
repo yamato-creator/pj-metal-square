@@ -1,56 +1,40 @@
 from fastapi import APIRouter
-from datetime import datetime, timezone, timedelta
 import os
+
+from ...services.settings_service import SettingsService
+from ..utils.time import now_jst
 
 # ルーターの設定
 router = APIRouter()
 
+
 @router.get("/check-access-time")
 async def check_access_time():
+    """アプリ全体のアクセス可否を返す。
+
+    2026/09/26 星さん要望（見積もり②）:
+      ・従来の「JST 10:00〜24:00 のみアクセス可」を撤廃し、24時間ログイン/閲覧可にする
+      ・代わりに、スプレッドシート「settings」シートのメンテナンスフラグ（B2=ON/OFF）で
+        「メンテナンス中」画面を管理者側から即時に出し分ける（反映は最大約1分）
+      ・取引の時間制限はここでは判定しない（売却=相場更新後〜12:30/15:30、
+        預入/返却/取消=10:00〜24:00 を各エンドポイントで判定）
+
+    レスポンス形はフロント（TimeRestrictedApp）互換のまま。
     """
-    現在時刻がアクセス許可時間内かをチェック
-    許可時間: 10:00:00-24:00:00 (JST)
-    制限時間: 00:00:01-09:59:59 (JST)
-    UTC時刻から日本時刻を計算（本番環境では完全に独立）
-    """
-    # UTC時刻を取得してJST（UTC+9）に変換
-    utc_now = datetime.now(timezone.utc)
-    jst_now = utc_now + timedelta(hours=9)
-    current_hour = jst_now.hour
-    current_minute = jst_now.minute
-    current_second = jst_now.second
-    
-    # 10:00:00-24:00:00の間かチェック（秒単位で正確）
-    # 許可: 10:00:00以降 または 00:00:00ちょうど
-    # 制限: 00:00:01-09:59:59
-    
-    if current_hour >= 10:
-        # 10時以降は許可
-        is_allowed = True
-    elif current_hour == 0 and current_minute == 0 and current_second == 0:
-        # 00:00:00ちょうど（24:00:00）は許可
-        is_allowed = True
-    elif current_hour >= 1 and current_hour <= 9:
-        # 1時台-9時台は制限
-        is_allowed = False
-    elif current_hour == 0:
-        # 0時台（但し00:00:00以外）は制限
-        is_allowed = False
-    else:
-        # その他は許可（念のため）
-        is_allowed = True
-    
+    svc = SettingsService()
+    maintenance = svc.is_maintenance()
+    message = svc.maintenance_message() if maintenance else "アクセス可能"
+
+    jst = now_jst()
     return {
-        "is_allowed": is_allowed,
-        "current_time": jst_now.replace(tzinfo=timezone(timedelta(hours=9))).isoformat(),
-        "current_hour": current_hour,
-        "current_minute": current_minute,
-        "current_second": current_second,
-        "allowed_hours": "10:00:00-24:00:00 (JST)",
-        "restricted_hours": "00:00:01-09:59:59 (JST)",
-        "message": "アクセス可能" if is_allowed else "アクセス制限時間です",
-        # 環境判定は ENVIRONMENT 環境変数を優先、未設定なら "production" 固定
-        # （旧実装は naive datetime.now() でローカル時刻を判定していたため、開発機が
-        # たまたまUTC設定だと誤判定する不安定な実装だった）
-        "environment": os.environ.get("ENVIRONMENT", "production")
-    } 
+        "is_allowed": not maintenance,
+        "maintenance": maintenance,
+        "current_time": jst.isoformat(),
+        "current_hour": jst.hour,
+        "current_minute": jst.minute,
+        "current_second": jst.second,
+        "allowed_hours": "24時間（メンテナンス中を除く）",
+        "restricted_hours": "メンテナンス中のみ",
+        "message": message,
+        "environment": os.environ.get("ENVIRONMENT", "production"),
+    }
