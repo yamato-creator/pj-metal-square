@@ -119,24 +119,14 @@ export const useTransactions = () => {
 
   // コンポーネントマウント時とリロード時の処理
   useEffect(() => {
-    // ページがリロードされたかどうかを確認
-    const isPageReload = window.performance && 
-      window.performance.getEntriesByType && 
-      window.performance.getEntriesByType('navigation').length > 0 && 
-      (window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).type === 'reload';
-    
     // キャッシュからデータを取得
     const cachedData = getFromCache();
-    
-    // キャッシュがあり、リロードでない場合はキャッシュを使用
-    if (cachedData && !isPageReload) {
-      setTransactions(cachedData);
-      return;
-    }
-    
-    // リロード時またはキャッシュがない場合
-    if (isPageReload) {
-      // リロード時は静かにバックグラウンドでデータを更新
+
+    // 2026/09/28 受け入れ検証で判明: 画面遷移時はキャッシュ（最大30分）を返すだけで再取得しないため、
+    // シート側の売却・管理者キャンセル・中断された売却など"アプリ外の変化"が最大30分見えなかった。
+    // → キャッシュがあれば即表示（UX維持）しつつ、常にバックグラウンドで最新を取り直す。
+    if (cachedData) {
+      // 静かにバックグラウンドでデータを更新
       (async () => {
         try {
           const response = await fetch(`${process.env.REACT_APP_API_URL}/api/transactions`, {
@@ -174,13 +164,11 @@ export const useTransactions = () => {
         }
       })();
       
-      // リロード時でもキャッシュがあれば一旦それを表示（UX向上）
-      if (cachedData) {
-        setTransactions(cachedData);
-        return;
-      }
+      // キャッシュを一旦表示（UX向上）。上のバックグラウンド更新が完了したら最新に差し替わる
+      setTransactions(cachedData);
+      return;
     }
-    
+
     // キャッシュがない場合は通常のフェッチ処理
     fetchTransactions(false);
   }, [fetchTransactions, getFromCache, saveToCache, getAuthHeaders]);

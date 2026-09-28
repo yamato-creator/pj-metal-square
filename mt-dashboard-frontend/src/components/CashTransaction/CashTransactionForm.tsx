@@ -412,7 +412,11 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >
-              {showTransactionButton ? '売却する' : '売却できない時間です'}
+              {/* 2026/09/28 受け入れ検証: ログイン直後にバックエンドが遅い日は価格が届くまで
+                  「売却できない時間です」に見えて誤解を招くため、価格ロード中は別表示にする */}
+              {!priceUpdateTime
+                ? '価格を読み込み中…'
+                : showTransactionButton ? '売却する' : '売却できない時間です'}
             </button>
           </div>
         </div>
