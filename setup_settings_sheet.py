@@ -17,7 +17,9 @@ SPREADSHEET_ID = "1WoBLYqZojno8_DVGvkeeCmloJAXJWMXVQ9wcgcLDxLM"
 CREDENTIALS_PATH = "mt-dashboard-backend/credentials.json"
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 DEFAULT_MSG = "ただいまメンテナンス中です。恐れ入りますが、しばらく時間をおいて再度アクセスしてください。"
-USERNAME_FORMULA = '=ARRAYFORMULA(IF(ROW(A:A)=1,"ユーザー名",IF(B:B="","",IFERROR(VLOOKUP(B:B,users!A:B,2,FALSE),""))))'
+# 2026/09/29: 旧式 IF(B:B="","",…) は全行に "" を吐き、GAS の getLastRow() が末尾(2111)を返して
+# 売却入力の行が最下部に飛ぶ不具合を起こした。LEN(B:B) 判定＋末尾の空引数で true blank を返す形に修正。
+USERNAME_FORMULA = '=ARRAYFORMULA(IF(ROW(A:A)=1,"ユーザー名",IF(LEN(B:B),IFERROR(VLOOKUP(B:B,users!A:B,2,FALSE),""),)))'
 
 
 def svc():
