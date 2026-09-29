@@ -132,7 +132,8 @@ class TransactionService(SheetsBase):
                         'tax': 0,
                         'total': 0,
                         'status': status,
-                        'transaction_type': transaction_type
+                        'transaction_type': transaction_type,
+                        'user_name': transaction.get('user_name', ''),  # 2026/09/29 C列（シートのARRAYFORMULA）をAPIにも載せる
                     }
             
             # 税金と合計を計算（Decimal で誤差ゼロ、float の subtotal を文字列経由で取り込む）
