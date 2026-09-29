@@ -388,6 +388,7 @@ function addTransaction(transactionsSheet, userId, metalName, amount, transactio
   const rowValues = [
     transactionId,
     String(userId),       // 文字列で保持
+    '',                   // C列 ユーザー名（シートの ARRAYFORMULA が自動表示・書かない）2026/09/29
     '預入',
     metalName,
     amount,

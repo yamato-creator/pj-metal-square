@@ -23,12 +23,12 @@ class TransactionService(SheetsBase):
             List[Dict]: 取引履歴のリスト
         """
         try:
-            values = self._get_sheet_data('transactions!A:J')
+            values = self._get_sheet_data('transactions!A:K')
             if not values:
                 return []
 
             # ヘッダーを明示的に指定
-            headers = ['transaction_id', 'user_id', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']
+            headers = ['transaction_id', 'user_id', 'user_name', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']  # 2026/09/29 C列にユーザー名(ARRAYFORMULA)を挿入
             data = values[1:]
             
             # ユーザーIDと日時でグループ化するための辞書
@@ -185,6 +185,7 @@ class TransactionService(SheetsBase):
             values = [[
                 transaction_id,                                    # 取引ID
                 transaction_data.get('user_id'),                   # ユーザーID
+                '',                                                # ユーザー名（C列: シート側 ARRAYFORMULA が自動表示・書かない）
                 transaction_data.get('transaction_type'),          # 取引種別
                 metal_type_jp,                                    # 貴金属種別（日本語）
                 transaction_data.get('weight_g'),                  # 取引量(g)
@@ -195,7 +196,7 @@ class TransactionService(SheetsBase):
                 company_name                                      # CP(取引相手先)
             ]]
             
-            result = self.append_data('transactions', 'A:J', values)
+            result = self.append_data('transactions', 'A:K', values)
             return bool(result)
             
         except Exception as e:
@@ -214,12 +215,12 @@ class TransactionService(SheetsBase):
             Optional[Dict]: 取引詳細、見つからない場合はNone
         """
         try:
-            values = self._get_sheet_data('transactions!A:J')
+            values = self._get_sheet_data('transactions!A:K')
             if not values:
                 return None
                 
             # ヘッダーを明示的に指定
-            headers = ['transaction_id', 'user_id', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']
+            headers = ['transaction_id', 'user_id', 'user_name', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']  # 2026/09/29 C列にユーザー名(ARRAYFORMULA)を挿入
             data = values[1:]
             
             for row in data:
@@ -251,12 +252,12 @@ class TransactionService(SheetsBase):
             List[Dict]: 取引詳細のリスト、見つからない場合は空リスト
         """
         try:
-            values = self._get_sheet_data('transactions!A:J')
+            values = self._get_sheet_data('transactions!A:K')
             if not values:
                 return []
                 
             # ヘッダーを明示的に指定
-            headers = ['transaction_id', 'user_id', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']
+            headers = ['transaction_id', 'user_id', 'user_name', 'transaction_type', 'metal_type', 'weight_g', 'unit_price', 'total_amount', 'status', 'transaction_datetime', 'company_name']  # 2026/09/29 C列にユーザー名(ARRAYFORMULA)を挿入
             data = values[1:]
             
             result = []
@@ -291,9 +292,9 @@ class TransactionService(SheetsBase):
             bool: 更新成功時True、失敗時False
         """
         try:
-            # ステータス列（H列）を更新
+            # ステータス列（I列）を更新
             result = self.update_data(
-                f'transactions!H{row_idx}',
+                f'transactions!I{row_idx}',  # ステータス列（2026/09/29 C列挿入により H→I）
                 [[new_status]]
             )
             

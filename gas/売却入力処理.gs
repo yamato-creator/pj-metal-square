@@ -334,6 +334,7 @@ function processSale() {
       const rowValues = [
         transactionId,
         String(selectedUserId),
+        '',            // C列 ユーザー名（シートの ARRAYFORMULA が自動表示・書かない）2026/09/29
         '売却',
         metalName,
         amount,

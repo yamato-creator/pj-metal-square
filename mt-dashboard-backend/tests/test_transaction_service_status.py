@@ -22,10 +22,11 @@ def test_create_transaction_uses_custom_status():
         assert result is True
         values = mock_append.call_args.args[2]
         row = values[0]
-        # status列(インデックス7)が「見積依頼」であること
-        assert row[7] == "見積依頼"
-        # transaction_type(インデックス2)
-        assert row[2] == "見積依頼"
+        # 2026/09/29 C列(index2)にユーザー名を挿入 → 11列。status=index8, transaction_type=index3
+        assert len(row) == 11
+        assert row[2] == ""            # C列はシート側 ARRAYFORMULA が埋める（書かない）
+        assert row[8] == "見積依頼"    # status
+        assert row[3] == "見積依頼"    # transaction_type
 
 
 def test_create_transaction_defaults_to_moushikomi_zumi():
@@ -45,4 +46,5 @@ def test_create_transaction_defaults_to_moushikomi_zumi():
             "company_name": "スクエア",
         })
         values = mock_append.call_args.args[2]
-        assert values[0][7] == "申込済"
+        assert len(values[0]) == 11
+        assert values[0][8] == "申込済"  # status（C列挿入により 7→8）

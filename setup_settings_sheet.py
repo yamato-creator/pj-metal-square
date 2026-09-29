@@ -5,7 +5,7 @@
      A1:B1  項目 / 値
      A2:B2  メンテナンス / OFF        ← ON にするとアプリが「メンテナンス中」画面になる（最大約1分で反映）
      A3:B3  メンテナンス文言 / （既定文）
-2. 「transactions」に K列「ユーザー名」を追加（users!A:B から VLOOKUP・ARRAYFORMULAで自動）
+2. 「transactions」の C列に「ユーザー名」（users!A:B から VLOOKUP・ARRAYFORMULA）。2026/09/29 K→C 移動
    ※ 既存 A〜J の位置は変えない（バックエンド/GASは A:J を固定参照しているため、右端に追加）
 
 実行: mt-dashboard-backend/.venv/bin/python setup_settings_sheet.py
@@ -55,32 +55,30 @@ def ensure_settings(s):
 
 
 def ensure_username_column(s):
-    props = sheet_props(s, 'transactions')
-    cols = props['gridProperties']['columnCount']
-    sheet_id = props['sheetId']
-    if cols < 11:
+    """transactions の「ユーザー名」列を C に置く（2026/09/29 星さん「IDの横」に合わせて K→C 移動）。
+    冪等: C1 が既に ユーザー名 の数式ならスキップ。旧 K列（ユーザー名）が残っていれば削除。
+    ※ backend/GAS は同時に 11列レイアウト (A:K, status=I) へ更新済みであること。"""
+    props = sheet_props(s, 'transactions'); sheet_id = props['sheetId']
+    c1 = s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="transactions!C1").execute().get('values', [])
+    if c1 and c1[0] and c1[0][0] == "ユーザー名":
+        print("[skip] transactions!C1 は既に ユーザー名"); return
+    reqs = [{"insertDimension": {"range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 2, "endIndex": 3}, "inheritFromBefore": False}}]
+    s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": reqs}).execute()
+    print("[inserted] C列を挿入（旧C〜Kは D〜L へ）")
+    s.spreadsheets().values().update(spreadsheetId=SPREADSHEET_ID, range="transactions!C1", valueInputOption="USER_ENTERED",
+                                     body={"values": [[USERNAME_FORMULA]]}).execute()
+    s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [
+        {"repeatCell": {"range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 2, "endColumnIndex": 3},
+                        "cell": {"userEnteredFormat": {"numberFormat": {"type": "TEXT", "pattern": "@"}}}, "fields": "userEnteredFormat.numberFormat"}},
+        {"updateDimensionProperties": {"range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 2, "endIndex": 3}, "properties": {"pixelSize": 220}, "fields": "pixelSize"}},
+    ]}).execute()
+    print("[written] transactions!C1 に ユーザー名 の ARRAYFORMULA（書式テキスト・幅220）")
+    # 旧 K（挿入後は L）にユーザー名の数式が残っていれば削除
+    l1 = s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="transactions!L1", valueRenderOption="FORMULA").execute().get('values', [])
+    if l1 and l1[0] and "ユーザー名" in str(l1[0][0]):
         s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [
-            {"appendDimension": {"sheetId": sheet_id, "dimension": "COLUMNS", "length": 11 - cols}}
-        ]}).execute()
-        print(f"[expanded] transactions 列数 {cols} → 11（K列を追加。A〜Jは不変）")
-    else:
-        print(f"[skip] transactions 列数は {cols}（K列あり）")
-    k1 = s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="transactions!K1", valueInputOption=None).execute().get('values', []) if False else \
-         s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="transactions!K1").execute().get('values', [])
-    if k1 and k1[0] and k1[0][0] == "ユーザー名":
-        print("[skip] transactions!K1 は既に ユーザー名 の数式あり")
-        return
-    s.spreadsheets().values().update(
-        spreadsheetId=SPREADSHEET_ID, range="transactions!K1", valueInputOption="USER_ENTERED",
-        body={"values": [[USERNAME_FORMULA]]},
-    ).execute()
-    # 列追加時に J列の書式（;;;"取引会社名" のラベル表示形式）を継承して K1 の表示が「取引会社名」に
-    # なってしまうため、K1 だけ書式をプレーンテキストに戻して数式の値「ユーザー名」を表示させる
-    s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [{"repeatCell": {
-        "range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 10, "endColumnIndex": 11},
-        "cell": {"userEnteredFormat": {"numberFormat": {"type": "TEXT", "pattern": "@"}}},
-        "fields": "userEnteredFormat.numberFormat"}}]}).execute()
-    print("[written] transactions!K1 に ユーザー名 の ARRAYFORMULA を設定＋K1書式をテキストに（users!A:B から自動）")
+            {"deleteDimension": {"range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 11, "endIndex": 12}}}]}).execute()
+        print("[deleted] 旧ユーザー名列（L）を削除 → A〜K の11列")
 
 
 if __name__ == "__main__":
