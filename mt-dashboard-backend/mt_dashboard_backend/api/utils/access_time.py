@@ -29,8 +29,13 @@ def is_within_business_hours() -> bool:
 
 
 def require_business_hours() -> None:
-    """取引可能時間外なら HTTP 403 を投げる。Depends で使う想定。"""
-    if not is_within_business_hours():
+    """取引可能時間外なら HTTP 403 を投げる。Depends で使う想定（預入/現物返却/取消）。
+
+    2026/09/29 受け入れ検証で判明: 売却は相場更新後（例 09:53）に開くが、取消/預入/返却は
+    10:00 固定開始のため、09:53〜10:00 の数分間「売れるが取消せない」状態が生じていた。
+    → 売却ウィンドウが開いている間は、こちらも許可する（10:00〜24:00 の従来ルールは維持）。
+    """
+    if not (is_within_business_hours() or is_sale_allowed_now()):
         raise HTTPException(
             status_code=403,
             detail="現在は取引可能時間外です（JST 10:00:00 - 24:00:00 のみ受付）",

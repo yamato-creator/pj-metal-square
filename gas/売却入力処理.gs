@@ -396,6 +396,7 @@ function sendSaleCompletionEmails(params) {
     'square.hirata@gmail.com',
     'square_hoshi@outlook.jp',
     'kobesendaikanto@outlook.jp',
+    'ogura.yamato123@gmail.com', // 2026/09/16 星さん了承（アプリ側 email.py と同じ宛先に揃える）
   ];
 
   const detailsBlock = saleLines.join('\n');
