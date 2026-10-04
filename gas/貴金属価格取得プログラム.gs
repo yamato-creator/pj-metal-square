@@ -585,6 +585,14 @@ function updateSpreadsheet(priceData, shouldAddHistory = true) {
 
       sheet.getRange(10, 1, 1, 6).setValues([newRowData]);
       Logger.log('→履歴データを追加: %s', JSON.stringify(newRowData));
+
+      // 2026/09/26 星さん: 価格更新のたびにLINE公式アカウントへ相場を配信する。
+      // 配信失敗で価格更新を巻き戻さないよう、ここで必ず握りつぶす（失敗は中でメール通知）。
+      try {
+        sendMarketPriceBroadcast();
+      } catch (lineErr) {
+        Logger.log('[LINE] 配信呼び出しで例外（価格更新は継続）: ' + lineErr);
+      }
     }
 
     Logger.log('スプレッドシートの更新が完了しました');
