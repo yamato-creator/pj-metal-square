@@ -25,6 +25,10 @@
  *     価格更新処理は止めない（相場データの方が重要なため）
  */
 
+// ★本番配信のON/OFF。false の間は価格更新のフックから配信を呼ばない（2026/10/04 一時停止）。
+//   星さんの「注意書き最終文面」「配信回数」確定後に true に戻す。
+const LINE_BROADCAST_ENABLED = false;
+
 const LINE_BROADCAST_URL = 'https://api.line.me/v2/bot/message/broadcast';
 const LINE_PUSH_URL = 'https://api.line.me/v2/bot/message/push';
 const PRICE_SHEET_NAME = 'metal-prices';

@@ -588,10 +588,19 @@ function updateSpreadsheet(priceData, shouldAddHistory = true) {
 
       // 2026/09/26 星さん: 価格更新のたびにLINE公式アカウントへ相場を配信する。
       // 配信失敗で価格更新を巻き戻さないよう、ここで必ず握りつぶす（失敗は中でメール通知）。
-      try {
-        sendMarketPriceBroadcast();
-      } catch (lineErr) {
-        Logger.log('[LINE] 配信呼び出しで例外（価格更新は継続）: ' + lineErr);
+      //
+      // ★2026/10/04 一時停止中（LINE_BROADCAST_ENABLED = false）
+      //   星さんから「注意書きの最終文面」と「配信回数」の確定待ちのため、
+      //   未承認の文面で本番配信が始まらないようフックを無効にしている。
+      //   再開するときは LINE_BROADCAST_ENABLED を true に戻すだけでよい。
+      if (LINE_BROADCAST_ENABLED) {
+        try {
+          sendMarketPriceBroadcast();
+        } catch (lineErr) {
+          Logger.log('[LINE] 配信呼び出しで例外（価格更新は継続）: ' + lineErr);
+        }
+      } else {
+        Logger.log('[LINE] 配信は一時停止中（LINE_BROADCAST_ENABLED=false）のためスキップ');
       }
     }
 
