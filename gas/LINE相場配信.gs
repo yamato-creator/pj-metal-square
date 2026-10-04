@@ -84,6 +84,10 @@ function checkLineConnection() {
   const quota = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/quota', opt);
   Logger.log('[LINE] quota      code=%s body=%s', quota.getResponseCode(), quota.getContentText());
 
+  // 当月の消費数。broadcast 1回 = 友だち人数ぶん増える（届いたかどうかの確実な証拠になる）
+  const cons = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/quota/consumption', opt);
+  Logger.log('[LINE] consumption code=%s body=%s', cons.getResponseCode(), cons.getContentText());
+
   const ok = info.getResponseCode() === 200;
   Logger.log(ok
     ? '[LINE] ✅ トークン有効・外部リクエスト承認済み（メッセージは送っていません）'
