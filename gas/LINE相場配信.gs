@@ -63,6 +63,35 @@ function previewMarketPriceMessage() {
 }
 
 /**
+ * 「誰にも送らずに」LINE連携が成立しているかを確認する（テスト用）。
+ *
+ *   ・GET /v2/bot/info        … トークンが有効か＋どのアカウントに紐づいているか
+ *   ・GET /v2/bot/message/quota … 当月の送信上限（無料枠）
+ *
+ * メッセージは1通も送らない。
+ * ★必ず「トリガー所有者（suquare.metal）」でログインしたGASエディタから実行すること。
+ *   実際の配信はトリガー所有者の権限で動くため、別アカウントで実行しても
+ *   外部リクエスト（script.external_request）の承認確認にはならない。
+ */
+function checkLineConnection() {
+  const token = PropertiesService.getScriptProperties().getProperty('LINE_CHANNEL_ACCESS_TOKEN');
+  if (!token) throw new Error('スクリプトプロパティ LINE_CHANNEL_ACCESS_TOKEN が未設定です');
+  const opt = { method: 'get', headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true };
+
+  const info = UrlFetchApp.fetch('https://api.line.me/v2/bot/info', opt);
+  Logger.log('[LINE] bot/info   code=%s body=%s', info.getResponseCode(), info.getContentText());
+
+  const quota = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/quota', opt);
+  Logger.log('[LINE] quota      code=%s body=%s', quota.getResponseCode(), quota.getContentText());
+
+  const ok = info.getResponseCode() === 200;
+  Logger.log(ok
+    ? '[LINE] ✅ トークン有効・外部リクエスト承認済み（メッセージは送っていません）'
+    : '[LINE] ❌ 連携NG。上のcode/bodyを確認してください');
+  return ok;
+}
+
+/**
  * 自分（または指定ユーザー）にだけ試送する（テスト用）。
  * スクリプトプロパティ LINE_TEST_USER_ID に自分のLINEユーザーIDを入れておく。
  */
