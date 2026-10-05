@@ -601,6 +601,12 @@ function updateSpreadsheet(priceData, shouldAddHistory = true) {
         }
       } else {
         Logger.log('[LINE] 配信は一時停止中（LINE_BROADCAST_ENABLED=false）のためスキップ');
+        // 停止中は、配信されるはずだった本文を小倉だけにメールで送る（LINEへは出さない）。
+        try {
+          sendDryRunNoticeToOgura();
+        } catch (dryErr) {
+          Logger.log('[LINE] ドライラン通知で例外（価格更新は継続）: ' + dryErr);
+        }
       }
     }
 

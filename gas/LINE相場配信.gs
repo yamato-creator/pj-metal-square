@@ -29,6 +29,9 @@
 //   星さんの「注意書き最終文面」「配信回数」確定後に true に戻す。
 const LINE_BROADCAST_ENABLED = false;
 
+// 配信停止中、配信されるはずだった本文を小倉だけに送る宛先（お客様・先方には出さない）。
+const LINE_DRYRUN_EMAIL = 'ogura.yamato123@gmail.com';
+
 const LINE_BROADCAST_URL = 'https://api.line.me/v2/bot/message/broadcast';
 const LINE_PUSH_URL = 'https://api.line.me/v2/bot/message/push';
 const PRICE_SHEET_NAME = 'metal-prices';
@@ -43,6 +46,13 @@ const PM_BOUNDARY_HOUR = 13;
  * @return {boolean} 送信できたら true
  */
 function sendMarketPriceBroadcast() {
+  // ★安全装置（2026/10/05）: 停止中は何があっても配信しない。
+  //   GASエディタの関数プルダウンは選択が確定しないことがあり、既定の本関数が
+  //   誤って実行されて友だち全員へ配信される事故が実際に起きたため、ここで止める。
+  if (!LINE_BROADCAST_ENABLED) {
+    Logger.log('[LINE] 配信停止中（LINE_BROADCAST_ENABLED=false）のため送信しませんでした');
+    return false;
+  }
   try {
     const msg = buildMarketPriceMessage_();
     if (!msg) {
@@ -53,6 +63,36 @@ function sendMarketPriceBroadcast() {
   } catch (e) {
     Logger.log('[LINE] 配信エラー: ' + e);
     notifyLineError_(e);
+    return false;
+  }
+}
+
+/**
+ * 配信停止中に、配信されるはずだった本文を小倉だけにメールで送る。
+ * LINEへは1通も送らない。価格更新のたびに呼ばれる想定。
+ * @return {boolean} 送れたら true
+ */
+function sendDryRunNoticeToOgura() {
+  try {
+    const msg = buildMarketPriceMessage_();
+    if (!msg) {
+      Logger.log('[LINE] ドライラン通知: 本文を作れなかったためスキップ');
+      return false;
+    }
+    GmailApp.sendEmail(
+      LINE_DRYRUN_EMAIL,
+      '【LINE配信ドライラン】配信は停止中です（送信されていません）',
+      'LINE自動配信は現在停止中（LINE_BROADCAST_ENABLED = false）です。\n' +
+      'お客様19人には1通も送られていません。\n' +
+      '配信を再開した場合に送られる本文は以下のとおりです。\n\n' +
+      '----------------------------------------\n' +
+      msg + '\n' +
+      '----------------------------------------\n'
+    );
+    Logger.log('[LINE] ドライラン通知を %s に送信', LINE_DRYRUN_EMAIL);
+    return true;
+  } catch (e) {
+    Logger.log('[LINE] ドライラン通知に失敗（価格更新は継続）: ' + e);
     return false;
   }
 }
