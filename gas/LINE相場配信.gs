@@ -79,6 +79,19 @@ function sendDryRunNoticeToOgura() {
       Logger.log('[LINE] ドライラン通知: 本文を作れなかったためスキップ');
       return false;
     }
+
+    // 小倉のLINEユーザーIDが登録されていれば、本人にだけ push する（お客様19人には出ない）。
+    const testUserId = PropertiesService.getScriptProperties().getProperty('LINE_TEST_USER_ID');
+    if (testUserId) {
+      const ok = lineSend_(LINE_PUSH_URL, {
+        to: testUserId,
+        messages: [{ type: 'text', text: '【テスト配信・小倉のみ】配信は停止中です\n（お客様には届いていません）\n\n' + msg }],
+      });
+      Logger.log('[LINE] ドライラン通知を小倉のLINEへpush: ' + ok);
+      if (ok) return true;
+      Logger.log('[LINE] pushに失敗したためメールにフォールバックします');
+    }
+
     GmailApp.sendEmail(
       LINE_DRYRUN_EMAIL,
       '【LINE配信ドライラン】配信は停止中です（送信されていません）',
@@ -137,6 +150,31 @@ function checkLineConnection() {
     ? '[LINE] ✅ トークン有効・外部リクエスト承認済み（メッセージは送っていません）'
     : '[LINE] ❌ 連携NG。上のcode/bodyを確認してください');
   return ok;
+}
+
+/**
+ * 【一時的】LINEのWebhook受け口。送信者のユーザーIDを控えるためだけのもの。
+ *
+ * 目的: push（個人宛送信）には相手のユーザーIDが要るが、取得手段がWebhookしかないため。
+ * 動作: 受け取ったイベントの userId をスクリプトプロパティ LINE_LAST_WEBHOOK_USER_ID に保存するだけ。
+ *       返信は一切しない（お客様から見て何も起きない）。
+ * ★ユーザーID取得後は、LINE DevelopersのWebhook設定を外し、このデプロイも停止すること。
+ */
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents);
+    const events = body.events || [];
+    const props = PropertiesService.getScriptProperties();
+    events.forEach(function (ev) {
+      const uid = (ev.source || {}).userId || '';
+      Logger.log('[LINE-WEBHOOK] type=%s userId=%s', ev.type, uid);
+      if (uid) props.setProperty('LINE_LAST_WEBHOOK_USER_ID', uid);
+    });
+  } catch (err) {
+    Logger.log('[LINE-WEBHOOK] 解析エラー: ' + err);
+  }
+  return ContentService.createTextOutput(JSON.stringify({ ok: true }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
