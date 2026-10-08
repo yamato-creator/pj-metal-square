@@ -81,9 +81,39 @@ def ensure_username_column(s):
         print("[deleted] 旧ユーザー名列（L）を削除 → A〜K の11列")
 
 
+def ensure_maintenance_dropdown(s):
+    """settings!B2 を ON/OFF のプルダウン（入力規則）にする。
+    2026/10/08 小倉: 手打ちだと表記ゆれ・打ち間違いでメンテが効かない/外れない事故が起きうるため。
+    ・リストは ON / OFF の2択、リスト以外の入力は拒否（strict）
+    ・セル右に▼を表示（showCustomUi）
+    冪等: 何度流しても同じ状態になる。
+    """
+    props = sheet_props(s, 'settings')
+    if not props:
+        print("[skip] settings シートが無いためプルダウン未設定")
+        return
+    sheet_id = props['sheetId']
+    s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [
+        {"setDataValidation": {
+            # B2 のみ（0始まり・終端排他）
+            "range": {"sheetId": sheet_id, "startRowIndex": 1, "endRowIndex": 2,
+                      "startColumnIndex": 1, "endColumnIndex": 2},
+            "rule": {
+                "condition": {"type": "ONE_OF_LIST",
+                              "values": [{"userEnteredValue": "ON"}, {"userEnteredValue": "OFF"}]},
+                "inputMessage": "ON＝アプリ全体をメンテナンス画面にする／OFF＝通常運転。約1分で反映されます。",
+                "strict": True,
+                "showCustomUi": True,
+            },
+        }}
+    ]}).execute()
+    print("[set] settings!B2 に ON/OFF プルダウンを設定")
+
+
 if __name__ == "__main__":
     s = svc()
     ensure_settings(s)
+    ensure_maintenance_dropdown(s)
     ensure_username_column(s)
     # 結果確認
     print("settings!A1:B3 =", s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="settings!A1:B3").execute().get('values'))
