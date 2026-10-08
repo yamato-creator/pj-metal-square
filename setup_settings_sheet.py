@@ -110,11 +110,56 @@ def ensure_maintenance_dropdown(s):
     print("[set] settings!B2 に ON/OFF プルダウンを設定")
 
 
+ASSETS_USERNAME_FORMULA = (
+    '=ARRAYFORMULA(IF(ROW(A:A)=1,"ユーザー名",'
+    'IF(LEN(B:B),IFERROR(VLOOKUP(B:B,users!A:B,2,FALSE),""),)))'
+)
+
+
+def ensure_assets_username_column(s):
+    """assets の C列に「ユーザー名」を挿入する（2026/10/09 星さん「IDの横にあった方が分かりやすい」）。
+    transactions!C と同じ ARRAYFORMULA（users!A:B を VLOOKUP。未入力行は true blank）。
+
+    ★前提: backend `asset_service.py` と GAS（シートに入力した時.gs／売却入力処理.gs）が
+      「ヘッダー名から列を特定する」版に更新・反映済みであること。旧コードのまま挿入すると
+      金属・保有量・更新日時の列がズレて売却の減算先が狂う。
+    冪等: C1 が既に ユーザー名 ならスキップ。
+    実行: setup_settings_sheet.py --assets-username （通常実行では走らない）
+    """
+    props = sheet_props(s, 'assets')
+    if not props:
+        print("[skip] assets シートが無い")
+        return
+    sheet_id = props['sheetId']
+    c1 = s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="assets!C1",
+                                      valueRenderOption="FORMULA").execute().get('values', [])
+    if c1 and c1[0] and 'ユーザー名' in str(c1[0][0]):
+        print("[skip] assets!C1 は既に ユーザー名")
+        return
+    hdr = s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="assets!A1:E1").execute().get('values', [[]])[0]
+    assert hdr[:5] == ['asset_id', 'user_id', 'metal_type', 'weight_g', 'updated_at'], f"想定外のヘッダー: {hdr}"
+    s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [
+        {"insertDimension": {"range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 2, "endIndex": 3},
+                             "inheritFromBefore": False}},
+    ]}).execute()
+    s.spreadsheets().values().update(spreadsheetId=SPREADSHEET_ID, range="assets!C1", valueInputOption="USER_ENTERED",
+                                     body={"values": [[ASSETS_USERNAME_FORMULA]]}).execute()
+    s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [
+        {"updateDimensionProperties": {"range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 2, "endIndex": 3},
+                                       "properties": {"pixelSize": 220}, "fields": "pixelSize"}},
+    ]}).execute()
+    print("[inserted] assets!C に ユーザー名（ARRAYFORMULA）を挿入")
+
+
 if __name__ == "__main__":
     s = svc()
     ensure_settings(s)
     ensure_maintenance_dropdown(s)
+    import sys
+    if '--assets-username' in sys.argv:
+        ensure_assets_username_column(s)
     ensure_username_column(s)
     # 結果確認
+    print("assets!A1:F1 =", s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="assets!A1:F1").execute().get('values'))
     print("settings!A1:B3 =", s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="settings!A1:B3").execute().get('values'))
     print("transactions!J1:K3 =", s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="transactions!J1:K3").execute().get('values'))

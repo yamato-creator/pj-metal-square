@@ -261,14 +261,16 @@ function processSale() {
     // 4. 保有量チェック（先行チェック: どれか1つでも不足していれば中断）
     const metalNames = ['金', 'パラジウム', '銀', 'プラチナ'];
     const assetsData = assetsSheet.getDataRange().getValues();
+    // 列はヘッダー名から特定（assetCols_ は シートに入力した時.gs に定義。2026/10/09 ユーザー名列の挿入対応）
+    const cols = assetCols_(assetsData);
     const assetRowMap = {}; // metalName -> { rowIndex: ..., currentAmount: ... }
     for (let i = 0; i < saleAmounts.length; i++) {
       if (!saleAmounts[i] || saleAmounts[i] <= 0) continue;
       const metalName = metalNames[i];
       let found = false;
       for (let j = 1; j < assetsData.length; j++) {
-        if (normUserId(assetsData[j][1]) === selectedUserId && assetsData[j][2] === metalName) {
-          const currentAmount = parseFloat(assetsData[j][3]) || 0;
+        if (normUserId(assetsData[j][cols.userId]) === selectedUserId && assetsData[j][cols.metal] === metalName) {
+          const currentAmount = parseFloat(assetsData[j][cols.weight]) || 0;
           if (currentAmount < saleAmounts[i]) {
             saleStatus_('❌ エラー: ' + (`${metalName}の売却量(${saleAmounts[i]}g)が保有量(${currentAmount}g)を超えています。`));
             saleSheet.getRange('I5').setValue('未確定');
@@ -327,8 +329,8 @@ function processSale() {
       // assetsから減算
       const a = assetRowMap[metalName];
       const newAmount = a.currentAmount - amount;
-      assetsSheet.getRange(a.rowIndex, 4).setValue(newAmount);
-      assetsSheet.getRange(a.rowIndex, 5).setValue(assetUpdateTime);
+      assetsSheet.getRange(a.rowIndex, cols.weight + 1).setValue(newAmount);
+      assetsSheet.getRange(a.rowIndex, cols.updatedAt + 1).setValue(assetUpdateTime);
 
       // transactions 追加
       const rowValues = [

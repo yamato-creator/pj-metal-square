@@ -177,6 +177,25 @@ function updateUserInfo(depositSheet, userId) {
   depositSheet.getRange('G5').setValue(remarks);
 }
 
+/**
+ * assets シートのヘッダー行から各項目の列番号（0始まり）を特定する。
+ * 2026/10/09 星さん要望: C列に「ユーザー名」を挿入するため、固定の列番号で読み書きしない。
+ * ヘッダーに無い項目は従来の固定位置（A=asset_id, B=user_id, C=metal_type, D=weight_g, E=updated_at）に
+ * フォールバックするので、旧レイアウトでも新レイアウトでも同じコードで動く。
+ * ※ 売却入力処理.gs からも呼ばれる（同一プロジェクト内で共有）。
+ */
+function assetCols_(assetsData) {
+  const cols = { assetId: 0, userId: 1, metal: 2, weight: 3, updatedAt: 4 };
+  const names = { asset_id: 'assetId', user_id: 'userId', metal_type: 'metal', weight_g: 'weight', updated_at: 'updatedAt' };
+  const header = (assetsData && assetsData[0]) || [];
+  header.forEach(function (h, i) {
+    const key = names[String(h).trim()];
+    if (key) cols[key] = i;
+  });
+  cols.width = Math.max(header.length, 5);
+  return cols;
+}
+
 function createAssetRecords(userId) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const assetsSheet = spreadsheet.getSheetByName("assets");
@@ -188,11 +207,12 @@ function createAssetRecords(userId) {
 
   // 既存データを取得して、該当ユーザーIDのレコードが存在するかチェック
   const assetsData = assetsSheet.getDataRange().getValues();
+  const cols = assetCols_(assetsData);
   const existingUserIds = new Set();
 
   for (let i = 1; i < assetsData.length; i++) { // ヘッダー行をスキップ
-    if (assetsData[i][1]) { // B列（ユーザーID）が存在する場合
-      existingUserIds.add(assetsData[i][1]);
+    if (assetsData[i][cols.userId]) { // ユーザーID列が存在する場合
+      existingUserIds.add(assetsData[i][cols.userId]);
     }
   }
 
@@ -225,10 +245,15 @@ function createAssetRecords(userId) {
     const assetId = `AST${dateTimeString}${index}`;
     const newRow = lastDataRow + 1 + index;
 
-    // データを設定（A〜E列を一括書き込み）
-    assetsSheet.getRange(newRow, 1, 1, 5).setValues([
-      [assetId, userId, metal, 0, formattedDateTime]
-    ]);
+    // データを設定（ヘッダー名で列を決めて一括書き込み。ユーザー名などの計算列は '' のまま＝
+    // シート側の ARRAYFORMULA が表示するので書かない）
+    const row = new Array(cols.width).fill('');
+    row[cols.assetId] = assetId;
+    row[cols.userId] = userId;
+    row[cols.metal] = metal;
+    row[cols.weight] = 0;
+    row[cols.updatedAt] = formattedDateTime;
+    assetsSheet.getRange(newRow, 1, 1, cols.width).setValues([row]);
   });
 
   console.log(`ユーザーID ${userId} の資産レコードを作成しました`);
@@ -337,6 +362,7 @@ function processDeposit() {
     // 作成しないと下の検索でヒットせず、transactions だけ記録されて assets が更新されない。
     createAssetRecords(selectedUserId);
     const assetsData = assetsSheet.getDataRange().getValues();
+    const cols = assetCols_(assetsData);
 
     for (let i = 0; i < depositAmounts.length; i++) {
       if (depositAmounts[i] && depositAmounts[i] > 0) {
@@ -344,11 +370,11 @@ function processDeposit() {
 
         // 該当する資産を検索
         for (let j = 1; j < assetsData.length; j++) {
-          if (assetsData[j][1] === selectedUserId && assetsData[j][2] === metalName) {
-            const currentAmount = assetsData[j][3] || 0;
+          if (assetsData[j][cols.userId] === selectedUserId && assetsData[j][cols.metal] === metalName) {
+            const currentAmount = assetsData[j][cols.weight] || 0;
             const newAmount = currentAmount + depositAmounts[i];
-            assetsSheet.getRange(j + 1, 4).setValue(newAmount);
-            assetsSheet.getRange(j + 1, 5).setValue(assetUpdateTime); // 常に現在日時
+            assetsSheet.getRange(j + 1, cols.weight + 1).setValue(newAmount);
+            assetsSheet.getRange(j + 1, cols.updatedAt + 1).setValue(assetUpdateTime); // 常に現在日時
             break;
           }
         }
