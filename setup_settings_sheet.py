@@ -149,8 +149,13 @@ def ensure_assets_username_column(s):
     s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [
         {"updateDimensionProperties": {"range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 2, "endIndex": 3},
                                        "properties": {"pixelSize": 220}, "fields": "pixelSize"}},
+        # 挿入列は隣（旧C=貴金属）の表示形式 ;;;"貴金属" を継承して C1 が「貴金属」と表示されてしまうため、
+        # C1 はテキスト書式に戻す（transactions!C1 と同じ）。
+        {"repeatCell": {"range": {"sheetId": sheet_id, "startRowIndex": 0, "endRowIndex": 1, "startColumnIndex": 2, "endColumnIndex": 3},
+                        "cell": {"userEnteredFormat": {"numberFormat": {"type": "TEXT", "pattern": "@"}}},
+                        "fields": "userEnteredFormat.numberFormat"}},
     ]}).execute()
-    print("[inserted] assets!C に ユーザー名（ARRAYFORMULA）を挿入")
+    print("[inserted] assets!C に ユーザー名（ARRAYFORMULA）を挿入・C1をテキスト書式に")
 
 
 if __name__ == "__main__":

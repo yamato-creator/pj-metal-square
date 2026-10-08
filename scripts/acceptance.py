@@ -39,8 +39,13 @@ lastA=max(i+1 for i,r in enumerate(A) if r and r[0]); lastC=max((i+1 for i,r in 
 chk("A4","ユーザー名が全データ行に表示・getLastRow汚染なし（lastA==lastC）", lastA==lastC, f"lastA={lastA} lastC={lastC}")
 rows=g("transactions!A2:K200"); bad=[r for r in rows if len(r)>=9 and r[8] not in ('申込済','取消','売却')]
 chk("A5","全行の I列(状態) が 申込済/取消/売却 のいずれか（列ズレなし）", not bad, f"rows={len(rows)} bad={bad[:2]}")
-assets=g("assets!A1:F200"); test=[r for r in assets if len(r)>3 and r[1]=="0276583112"]
-chk("A6","テストユーザー資産 = 金30.81/Pd558.42/Ag3464.12/Pt539.45（復元完全）", [r[3] for r in test]==['30.81','558.42','3464.12','539.45'], [(r[2],r[3]) for r in test])
+assets=g("assets!A1:G200"); ahdr=assets[0]
+# 2026/10/09 C列に「ユーザー名」を挿入。列は表示ヘッダー名で引く（固定番号にしない）
+acol=lambda name: ahdr.index(name)
+ai_uid, ai_name, ai_metal, ai_w = acol("ユーザーID"), acol("ユーザー名"), acol("貴金属"), acol("保有量(g)")
+test=[r for r in assets[1:] if len(r)>ai_w and r[ai_uid]=="0276583112"]
+chk("A6","テストユーザー資産 = 金30.81/Pd558.42/Ag3464.12/Pt539.45（復元完全）", [r[ai_w] for r in test]==['30.81','558.42','3464.12','539.45'], [(r[ai_metal],r[ai_w]) for r in test])
+chk("A6b","assets ヘッダ = 資産ID/ユーザーID/ユーザー名/貴金属/保有量(g)/更新日時・C列の名前が users と一致", ahdr[:6]==['資産ID','ユーザーID','ユーザー名','貴金属','保有量(g)','更新日時'] and all(r[ai_name]=='スクエア合同会社(テスト)' for r in test), (ahdr[:6], [r[ai_name] for r in test]))
 mp=g("'metal-prices'!E2")[0][0]; chk("A7","metal-prices!E2 が本日更新（5分ポーリング稼働）", mp.startswith(now.strftime("%Y-%m-%d")), mp)
 print()
 
