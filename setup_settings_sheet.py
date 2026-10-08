@@ -136,7 +136,9 @@ def ensure_assets_username_column(s):
     if c1 and c1[0] and 'ユーザー名' in str(c1[0][0]):
         print("[skip] assets!C1 は既に ユーザー名")
         return
-    hdr = s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="assets!A1:E1").execute().get('values', [[]])[0]
+    # ヘッダーは表示形式 ;;;"資産ID" で日本語に見えるが中身は英語名。中身で判定する。
+    hdr = s.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="assets!A1:E1",
+                                        valueRenderOption="UNFORMATTED_VALUE").execute().get('values', [[]])[0]
     assert hdr[:5] == ['asset_id', 'user_id', 'metal_type', 'weight_g', 'updated_at'], f"想定外のヘッダー: {hdr}"
     s.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body={"requests": [
         {"insertDimension": {"range": {"sheetId": sheet_id, "dimension": "COLUMNS", "startIndex": 2, "endIndex": 3},

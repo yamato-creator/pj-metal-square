@@ -41,6 +41,33 @@ def _svc(assets):
     return svc, fake_get
 
 
+# 本番の実際の見え方: ヘッダーは表示形式 ;;;"資産ID" で日本語ラベル（API既定の FORMATTED_VALUE で返る）
+NEW_JP = [
+    ['資産ID', 'ユーザーID', 'ユーザー名', '貴金属', '保有量(g)', '更新日時'],
+    ['AST1', '0367150884', 'クリニック', '金', '12', '2026/08/13 12:42:08'],
+    ['AST2', '0367150884', 'クリニック', '銀', '30', '2026/08/13 12:42:08'],
+]
+
+
+def test_asset_columns_japanese_display_labels():
+    assert asset_columns(NEW_JP[0]) == {'asset_id': 0, 'user_id': 1, 'metal_type': 3, 'weight_g': 4, 'updated_at': 5}
+    assert asset_columns(['資産ID', 'ユーザーID', '貴金属', '保有量(g)', '更新日時']) == asset_columns(LEGACY[0])
+
+
+def test_fetch_and_update_with_japanese_header():
+    svc, fake = _svc(NEW_JP)
+    with patch.object(svc, '_get_sheet_data', side_effect=fake):
+        assets = svc.fetch_user_assets_with_validation('0367150884')
+    assert [(a['metal_type'], a['weight_g']) for a in assets] == [('金', '12'), ('銀', '30')]
+    with (
+        patch.object(svc, '_get_sheet_data', side_effect=fake),
+        patch.object(svc, 'update_data', return_value=True) as mock_update,
+        patch('mt_dashboard_backend.services.asset_service.jst_str', return_value='now'),
+    ):
+        assert svc.update_asset_after_sale('0367150884', '銀', 29) is True
+    mock_update.assert_called_once_with('assets!E3:F3', [['29', 'now']])
+
+
 def test_asset_columns_legacy_and_new():
     assert asset_columns(LEGACY[0]) == {'asset_id': 0, 'user_id': 1, 'metal_type': 2, 'weight_g': 3, 'updated_at': 4}
     assert asset_columns(NEW[0]) == {'asset_id': 0, 'user_id': 1, 'metal_type': 3, 'weight_g': 4, 'updated_at': 5}

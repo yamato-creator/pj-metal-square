@@ -5,6 +5,12 @@ from ..api.utils.time import jst_str
 
 # assets シートの論理項目（この順が従来の固定レイアウト A〜E）
 ASSET_FIELDS = ['asset_id', 'user_id', 'metal_type', 'weight_g', 'updated_at']
+# ヘッダーセルは表示形式 ;;;"資産ID" で日本語ラベルを見せている（中身は英語名）。
+# Sheets API の既定（FORMATTED_VALUE）では日本語の方が返るので、両方を同じ項目として扱う。
+ASSET_HEADER_ALIASES = {
+    '資産ID': 'asset_id', 'ユーザーID': 'user_id', '貴金属': 'metal_type',
+    '保有量(g)': 'weight_g', '更新日時': 'updated_at',
+}
 # ヘッダー行を含めて広めに読む（列が増減してもコード変更不要にする）
 ASSETS_RANGE = 'assets!A:Z'
 ASSETS_HEADER_RANGE = 'assets!A1:Z1'
@@ -30,6 +36,7 @@ def asset_columns(header_row) -> Dict[str, int]:
     cols = {name: i for i, name in enumerate(ASSET_FIELDS)}
     for i, h in enumerate(header_row or []):
         key = str(h).strip()
+        key = ASSET_HEADER_ALIASES.get(key, key)
         if key in cols:
             cols[key] = i
     return cols
