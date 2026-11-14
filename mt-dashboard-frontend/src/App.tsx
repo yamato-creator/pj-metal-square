@@ -16,10 +16,10 @@ import { useTransactions } from './hooks/useTransactions';
 import theme from './theme/theme';
 import AssetStatus from './components/AssetStatus';
 import CashTransactionForm from './components/CashTransaction/CashTransactionForm';
-// 2026/08/21 星さん要望: 現物返却を非表示（後日再開の可能性があるため削除せずコメントアウト）
-// import WithdrawTransactionForm from './components/WithdrawTransaction/WithdrawTransactionForm';
+// 2026/11/14 現物返却を再開（金のみ・50g単位）
+import WithdrawTransactionForm from './components/WithdrawTransaction/WithdrawTransactionForm';
 import CompletionScreen from './components/CashTransaction/CompletionScreen';
-// import WithdrawCompletionPage from './pages/WithdrawCompletionPage';
+import WithdrawCompletionPage from './pages/WithdrawCompletionPage';
 import TransactionHistoryPage from './pages/TransactionHistoryPage';
 import { AccountSettings } from './pages/AccountSettings';
 import { MetalPriceChart } from './components/MetalPriceChart';
@@ -83,8 +83,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const menuItems = [
     { path: '/dashboard', emoji: <img src="/icons/home-icon.png" alt="トップ" className="w-5 h-5" />, label: 'トップ' },
     { path: '/cash-transaction', emoji: <img src="/icons/yen-icon.png" alt="売却" className="w-5 h-5" />, label: '売却' },
-    // 2026/08/21 星さん要望: 現物返却を非表示（機能・ヘッダーとも）。後日再開の可能性があるため削除せずコメントアウト。
-    // { path: '/withdraw-transaction', emoji: <img src="/icons/gold-icon.png" alt="現物返却" className="w-5 h-5" />, label: '現物返却' },
+    { path: '/withdraw-transaction', emoji: <img src="/icons/gold-icon.png" alt="現物返却" className="w-5 h-5" />, label: '現物返却' },
     { path: '/transaction-history', emoji: <img src="/icons/document-icon.png" alt="取引履歴" className="w-5 h-5" />, label: '取引履歴' },
     { path: '/account-settings', emoji: <img src="/icons/settings-icon.png" alt="アカウント設定" className="w-5 h-5" />, label: 'アカウント設定' },
   ];
@@ -492,8 +491,7 @@ function MainContent() {
   };
 
   // 現物返却処理のハンドラー
-  // 2026/08/21 星さん要望: 現物返却を非表示（後日再開の可能性があるため削除せずコメントアウト）
-  /* const handleWithdraw = async (withdrawAmounts: { [key: string]: number }) => {
+  const handleWithdraw = async (withdrawAmounts: { [key: string]: number }) => {
     const totalWithdrawAmount = Object.values(withdrawAmounts).reduce((sum, amount) => sum + amount, 0);
     if (totalWithdrawAmount <= 0) {
       alert('返却する金属を選択してください');
@@ -570,7 +568,7 @@ function MainContent() {
       console.error('現物返却処理エラー:', error);
       return null;
     }
-  }; */
+  };
 
   return (
     <Router>
@@ -600,11 +598,15 @@ function MainContent() {
               <Navigate to="/dashboard" replace />
             }
           />
-          {/* 2026/08/21 星さん要望: 現物返却を非表示。直接URLでもトップへリダイレクト（後日再開時はこのルートと上部のimport/handlerを戻す） */}
           <Route
             path="/withdraw-transaction"
             element={
-              <Navigate to="/dashboard" replace />
+              <ProtectedRoute>
+                <WithdrawTransactionForm 
+                  metals={metals} 
+                  onWithdraw={handleWithdraw}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
@@ -635,11 +637,12 @@ function MainContent() {
               <Navigate to="/dashboard" replace />
             }
           />
-          {/* 2026/08/21 星さん要望: 現物返却を非表示。完了ページもトップへリダイレクト */}
           <Route
             path="/withdraw-completion"
             element={
-              <Navigate to="/dashboard" replace />
+              <ProtectedRoute>
+                <WithdrawCompletionPage />
+              </ProtectedRoute>
             }
           />
           <Route

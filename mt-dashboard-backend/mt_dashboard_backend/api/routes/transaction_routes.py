@@ -466,6 +466,10 @@ async def _create_deposit_transaction(transaction_data: DepositCreate, current_u
             detail="預入処理に失敗しました"
         )
 
+# 現物返却の単位（g）。金のみ・この単位の倍数で受け付ける。
+WITHDRAW_UNIT_G = 50
+
+
 @router.post("/withdraw")
 async def create_withdraw_transaction(
     transaction_data: WithdrawCreate,
@@ -479,6 +483,19 @@ async def create_withdraw_transaction(
 
 async def _create_withdraw_transaction(transaction_data: WithdrawCreate, current_user: dict):
     try:
+        # 2026/11/14 現物返却の再開: 金のみ・50g単位（50g以上）。画面側の制限をサーバーでも守る。
+        if not transaction_data.metals:
+            raise HTTPException(status_code=400, detail="返却する金属を指定してください")
+        for metal in transaction_data.metals:
+            amount = float(metal.amount)
+            if metal.metal_type != "金":
+                raise HTTPException(status_code=400, detail="現物返却は金のみ受け付けています")
+            if amount < WITHDRAW_UNIT_G or amount % WITHDRAW_UNIT_G != 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"現物返却は{WITHDRAW_UNIT_G}g単位（{WITHDRAW_UNIT_G}g以上）で指定してください",
+                )
+
         transaction_service = TransactionService()
         asset_service = AssetService()
         email_sender = EmailSender()
