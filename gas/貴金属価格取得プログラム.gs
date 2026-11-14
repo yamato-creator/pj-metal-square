@@ -216,6 +216,13 @@ function updateSpreadsheetWithCorrection(priceData) {
 
     Logger.log('✅ 訂正メール処理完了: 履歴行10を上書き');
 
+    // 訂正で単価が変わったことも同じ宛先へ知らせる（失敗しても訂正処理は継続）
+    try {
+      sendPriceUpdateNoticeToAdmins(true);
+    } catch (noticeErr) {
+      Logger.log('[価格通知] 訂正の送信で例外（訂正処理は継続）: ' + noticeErr);
+    }
+
   } catch (error) {
     Logger.log('訂正メール処理エラー: ' + error);
     throw error;
@@ -610,6 +617,14 @@ function updateSpreadsheet(priceData, shouldAddHistory = true) {
       }
     }
 
+    // 2026/11/14 星さん依頼: 価格を更新したら、設定された単価を星さん・平田さんへメールで知らせる。
+    // 通知に失敗しても価格更新は巻き戻さない（ここで握りつぶす）。
+    try {
+      sendPriceUpdateNoticeToAdmins(false);
+    } catch (noticeErr) {
+      Logger.log('[価格通知] 送信で例外（価格更新は継続）: ' + noticeErr);
+    }
+
     Logger.log('スプレッドシートの更新が完了しました');
 
   } catch (error) {
@@ -645,6 +660,68 @@ function setupPollingTrigger() {
 
   Logger.log('✅ 5分ポーリングトリガーを作成しました');
   Logger.log('営業時間（平日8:00-18:00）のみ処理を実行します');
+}
+
+// ===================================================================
+// 価格更新の通知メール（2026/11/14 星さん依頼）
+// ===================================================================
+
+// 単価を更新したタイミングで、設定された単価を送る宛先
+const PRICE_NOTICE_RECIPIENTS = [
+  'square_hoshi@outlook.jp',  // 星さん
+  'square.hirata@gmail.com',  // 平田さん
+];
+
+/**
+ * metal-prices シートに設定された現在の単価をメール本文にする（送信はしない）
+ */
+function buildPriceUpdateNotice_(isCorrection) {
+  SpreadsheetApp.flush(); // 直前の書き込み（税込の計算式を含む）を反映させてから読む
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  const rows = sheet.getRange('B2:E5').getValues(); // 貴金属 / 税抜 / 税込 / 更新日時
+
+  const yen = (v) => (v === '' || v === null || isNaN(Number(v)))
+    ? '-'
+    : Number(v).toLocaleString('ja-JP', { maximumFractionDigits: 1 }) + '円';
+  const fmtTime = (v) => (v instanceof Date)
+    ? Utilities.formatDate(v, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm')
+    : String(v || '').replace(/-/g, '/').slice(0, 16);
+
+  const updatedAt = fmtTime(rows[0][3]);
+  const lines = rows.map(([metal, exTax, inTax]) =>
+    `${metal}：税抜 ${yen(exTax)} ／ 税込 ${yen(inTax)}（1gあたり）`);
+
+  const subject = (isCorrection ? '【訂正】' : '') + `【単価更新】${updatedAt} の貴金属単価`;
+  const body = [
+    isCorrection
+      ? '田中貴金属から訂正メールが届いたため、単価を訂正しました。'
+      : '田中貴金属の相場メールを受信し、アプリの単価を更新しました。',
+    '',
+    `更新日時：${updatedAt}`,
+    '',
+    ...lines,
+    '',
+    '※このメールは単価の更新時に自動で送信しています。',
+  ].join('\n');
+
+  return { subject, body };
+}
+
+/**
+ * 星さん・平田さんへ単価更新の通知メールを送る
+ */
+function sendPriceUpdateNoticeToAdmins(isCorrection) {
+  const { subject, body } = buildPriceUpdateNotice_(isCorrection);
+  GmailApp.sendEmail(PRICE_NOTICE_RECIPIENTS.join(','), subject, body);
+  Logger.log('[価格通知] 送信しました: ' + PRICE_NOTICE_RECIPIENTS.join(', '));
+}
+
+/**
+ * 手動確認用: 通知メールの件名・本文をログに出すだけ（送信しない）
+ */
+function previewPriceUpdateNotice() {
+  const { subject, body } = buildPriceUpdateNotice_(false);
+  Logger.log('件名: ' + subject + '\n\n' + body);
 }
 
 // ===================================================================
