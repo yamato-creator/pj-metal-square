@@ -85,3 +85,27 @@ def require_sale_time() -> None:
             status_code=403,
             detail="現在は売却できません（相場更新後〜午前12:30／午後15:30のみ受付）",
         )
+
+
+# --- 現物返却専用の時間ゲート（2026/11/15 小倉確認） --------------------------
+# 現物返却は 10:00〜12:30 / 14:30〜15:30 のみ受付（画面 isTransactionButtonVisible と同じ）。
+# 画面は「分」単位で 12:30・15:30 を含むため、サーバーも 12:30:59・15:30:59 まで許可する。
+_WITHDRAW_WINDOWS = (
+    (_dtime(10, 0), _dtime(12, 31)),
+    (_dtime(14, 30), _dtime(15, 31)),
+)
+
+
+def is_withdraw_allowed_now() -> bool:
+    """JST の現在時刻が現物返却の受付時間内かを返す。"""
+    t = now_jst().time()
+    return any(start <= t < end for start, end in _WITHDRAW_WINDOWS)
+
+
+def require_withdraw_time() -> None:
+    """現物返却の受付時間外なら HTTP 403 を投げる。/withdraw の Depends で使う。"""
+    if not is_withdraw_allowed_now():
+        raise HTTPException(
+            status_code=403,
+            detail="現在は現物返却を受け付けていません（10:00〜12:30、14:30〜15:30のみ受付）",
+        )

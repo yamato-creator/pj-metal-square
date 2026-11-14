@@ -9,7 +9,7 @@ from ...services.asset_service import AssetService
 from ..utils.auth import verify_api_key
 from ..utils.email import EmailSender
 from ..utils.time import jst_str, jst_compact
-from ..utils.access_time import require_business_hours, require_sale_time
+from ..utils.access_time import require_business_hours, require_sale_time, require_withdraw_time
 from ..utils.money import calc_tax_yen
 from ..utils.user_lock import user_lock
 
@@ -474,9 +474,9 @@ WITHDRAW_UNIT_G = 50
 async def create_withdraw_transaction(
     transaction_data: WithdrawCreate,
     current_user: dict = Depends(verify_api_key),
-    _bh: None = Depends(require_business_hours),
+    _wt: None = Depends(require_withdraw_time),
 ):
-    """現物返却取引を作成（公開ハンドラ）。"""
+    """現物返却取引を作成（公開ハンドラ）。受付は 10:00〜12:30 / 14:30〜15:30 のみ。"""
     async with user_lock(current_user["user_id"]):
         return await _create_withdraw_transaction(transaction_data, current_user)
 
