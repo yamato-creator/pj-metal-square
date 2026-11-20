@@ -4,6 +4,9 @@ import { CircularProgress } from '@mui/material';
 import ConfirmationModal from '../CashTransaction/ConfirmationModal';
 import { isTransactionButtonVisible } from '../../utils/timeRestriction';
 
+// 現物返却の下限（g）。サーバー側 WITHDRAW_MIN_G と同じ値。
+const WITHDRAW_MIN_G = 50;
+
 interface Metal {
   name: string;
   nameJp: string;
@@ -98,14 +101,9 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     if (metal) {
       let validAmount = numAmount;
       
-      // 50の倍数に調整
-      if (validAmount % 50 !== 0) {
-        validAmount = Math.floor(validAmount / 50) * 50;
-      }
-      
-      // 保有量を超える場合は保有量以下の最大の50の倍数に設定
+      // 2026/11/20 50g単位→50g以上（1g単位）に変更。保有量を超える場合は保有量（整数）に合わせる
       if (validAmount > metal.amount) {
-        validAmount = Math.floor(metal.amount / 50) * 50;
+        validAmount = Math.floor(metal.amount);
         setInputValues(prev => ({
           ...prev,
           [metalName]: validAmount.toString()
@@ -144,14 +142,9 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     // 保有量の確認
     const metal = filteredMetals.find(m => m.name === metalName);
     if (metal) {
-      // 50g単位に調整
-      if (numAmount % 50 !== 0) {
-        numAmount = Math.floor(numAmount / 50) * 50;
-      }
-      
-      // 保有量を超える場合は保有量以下の最大の50の倍数に設定
+      // 保有量を超える場合は保有量（整数）に合わせる
       if (numAmount > metal.amount) {
-        numAmount = Math.floor(metal.amount / 50) * 50;
+        numAmount = Math.floor(metal.amount);
       }
       
       setInputValues(prev => ({ ...prev, [metalName]: numAmount.toString() }));
@@ -215,23 +208,11 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
   };
 
   const handleProceed = () => {
-    // 現在の入力値をすべて50g単位にバリデーション
-    if (withdrawMode === 'specific') {
-      let isValid = true;
-      const validatedAmounts = { ...withdrawAmounts };
-      
-      Object.entries(withdrawAmounts).forEach(([key, amount]) => {
-        if (amount !== 0 && amount % 50 !== 0) {
-          isValid = false;
-          validatedAmounts[key] = Math.floor(amount / 50) * 50;
-        }
-      });
-      
-      if (!isValid) {
-        setWithdrawAmounts(validatedAmounts);
-        alert('返却量は50g単位で指定してください。入力値を調整しました。');
-        return;
-      }
+    // 2026/11/20 返却は50g以上（指定返却・全量返却とも）
+    const tooSmall = Object.values(withdrawAmounts).some(amount => amount > 0 && amount < WITHDRAW_MIN_G);
+    if (tooSmall) {
+      alert(`返却量は${WITHDRAW_MIN_G}g以上で指定してください。`);
+      return;
     }
 
     const hasWithdrawItems = Object.values(withdrawAmounts).some(amount => amount > 0);
@@ -308,7 +289,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
         
         <div className="mb-4">
           <p className="responsive-text text-gray-600 mb-2">※ 金のみ返却可能です</p>
-          <p className="responsive-text text-gray-600 mb-2">※ 指定返却は50g単位になります（入力完了時に自動調整されます）</p>
+          <p className="responsive-text text-gray-600 mb-2">※ 返却は50g以上から可能です（指定返却は1g単位）</p>
           <label className="responsive-text">返却方式：</label>
           <div className="mt-2 space-x-4">
             <label className="inline-flex items-center">
@@ -320,7 +301,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
                 checked={withdrawMode === 'specific'}
                 onChange={() => handleModeChange('specific')}
               />
-              <span className="ml-2 responsive-text">指定返却（50g単位）</span>
+              <span className="ml-2 responsive-text">指定返却（50g以上）</span>
             </label>
             <label className="inline-flex items-center">
               <input
@@ -367,7 +348,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
                       <input
                         type="number"
                         min="0"
-                        step="50"
+                        step="1"
                         max={metal.amount}
                         className="w-20 text-right border rounded p-1 responsive-text"
                         value={inputValues[metal.name]}

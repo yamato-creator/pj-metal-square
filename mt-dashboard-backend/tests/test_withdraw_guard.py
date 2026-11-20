@@ -1,4 +1,4 @@
-"""現物返却の入力制限（金のみ・50g単位）のテスト。2026/11/14 再開時に追加。"""
+"""現物返却の入力制限（金のみ・50g以上）のテスト。2026/11/14 再開時に追加、11/20 に50g単位→50g以上へ変更。"""
 import asyncio
 from unittest.mock import patch
 
@@ -22,9 +22,9 @@ def _req(*metals):
     ((), "指定"),
     ((("銀", 50),), "金のみ"),
     ((("金", 50), ("プラチナ", 50)), "金のみ"),
-    ((("金", 30),), "50g単位"),
-    ((("金", 75),), "50g単位"),
-    ((("金", 0),), "50g単位"),
+    ((("金", 30),), "50g以上"),
+    ((("金", 49.9),), "50g以上"),
+    ((("金", 0),), "50g以上"),
 ])
 def test_rejects_invalid_withdraw(metals, msg):
     # 不正な入力はサービス層に触れる前に 400 で止まる
@@ -36,8 +36,8 @@ def test_rejects_invalid_withdraw(metals, msg):
     ts.assert_not_called()
 
 
-@pytest.mark.parametrize("amount", [50, 100, 500])
-def test_accepts_gold_in_50g_units(amount):
+@pytest.mark.parametrize("amount", [50, 60, 75, 123.45, 500])
+def test_accepts_gold_50g_or_more(amount):
     # 制限を通過したらサービス層まで進む（ここでは保有データなしで 400 になるところまで確認）
     with patch.object(tr, "TransactionService"), \
          patch.object(tr, "EmailSender"), \
