@@ -591,7 +591,8 @@ function MainContent() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Navigate to="/" replace />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          {/* 2026/11/20 プライバシーポリシーはログイン後のみ表示（ログイン前はログイン画面へ） */}
+          <Route path="/privacy-policy" element={<ProtectedRoute><PrivacyPolicy /></ProtectedRoute>} />
           <Route
             path="/dashboard"
             element={

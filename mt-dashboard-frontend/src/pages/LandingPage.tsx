@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Typography, Container, Paper } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -64,14 +64,6 @@ const LandingPage = () => {
             </Button> */}
           </Box>
 
-          <Box sx={{ mt: 3 }}>
-            <RouterLink
-              to="/privacy-policy"
-              style={{ color: '#6b7280', fontSize: '0.875rem' }}
-            >
-              プライバシーポリシー
-            </RouterLink>
-          </Box>
         </Paper>
       </Container>
     </Box>

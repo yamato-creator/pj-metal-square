@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 
 const PrivacyPolicy: React.FC = () => {
   const [content, setContent] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     fetch('/privacy-policy.md')
@@ -18,7 +16,7 @@ const PrivacyPolicy: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="py-8">
       <div className="max-w-3xl mx-auto px-4">
         <div className="bg-white rounded shadow p-6 sm:p-10">
           {error ? (
@@ -29,29 +27,12 @@ const PrivacyPolicy: React.FC = () => {
             </pre>
           )}
           <div className="mt-8 flex flex-wrap gap-4">
-            {isAuthenticated ? (
-              <Link
-                to="/dashboard"
-                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 no-underline"
-              >
-                トップへ戻る
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/"
-                  className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 no-underline"
-                >
-                  トップへ戻る
-                </Link>
-                <Link
-                  to="/login"
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 no-underline"
-                >
-                  ログイン画面へ
-                </Link>
-              </>
-            )}
+            <Link
+              to="/dashboard"
+              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 no-underline"
+            >
+              トップへ戻る
+            </Link>
           </div>
         </div>
       </div>
