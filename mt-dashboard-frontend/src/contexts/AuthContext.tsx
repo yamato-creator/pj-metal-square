@@ -185,6 +185,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // 2026/11/20 本番データのクリアで判明: アカウントが消えてもブラウザに残ったログイン状態と
+  // 取引履歴のキャッシュ（最大30分）で古い画面が出続けていた。
+  // → API が「無効なAPIキー」「退会済み」を返したら自動でログアウトし、保存データも消す。
+  //   （パスワード間違いの 401 は対象外。detail の文言で見分ける）
+  useEffect(() => {
+    const apiBase = process.env.REACT_APP_API_URL || '';
+    const originalFetch = window.fetch;
+    window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await originalFetch(input, init);
+      try {
+        const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+        if (res.status === 401 && apiBase && url.startsWith(apiBase) && !url.includes('/api/users/login')) {
+          const body = await res.clone().json().catch(() => null);
+          const detail = String(body?.detail || '');
+          if (detail.includes('APIキー') || detail.includes('退会済み')) {
+            logout();
+          }
+        }
+      } catch {
+        // 判定に失敗しても元のレスポンスはそのまま返す
+      }
+      return res;
+    };
+    return () => {
+      window.fetch = originalFetch;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <AuthContext.Provider value={{ ...authState, login, register, updatePassword, updateEmail, getAuthHeaders, logout }}>
       {children}
