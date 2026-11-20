@@ -98,6 +98,13 @@ export const Login = () => {
           >
             戻る
           </Button>
+          {/* 2026/11/20 星さん要望: ID・パスワードを忘れた方への案内 */}
+          <Typography variant="body2" sx={{ mt: 1, color: '#6b7280', textAlign: 'center', lineHeight: 1.7 }}>
+            ユーザーID・パスワードをお忘れの方は、
+            <br />
+            <a href="tel:0276583112" style={{ color: '#047857' }}>0276-58-3112</a>
+            {' '}または担当者までご連絡ください。
+          </Typography>
         </form>
       </Paper>
     </Box>
