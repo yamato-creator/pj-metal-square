@@ -57,3 +57,10 @@ def test_customer_mail_includes_payout_notice():
     asyncio.run(sender.send_sale_completion_email("a@example.com", "金 1g", 100, 10, 110))
     body = sender.send_email.call_args.args[2]
     assert "7営業日以内にご指定の口座にお振込致します。" in body
+
+
+@pytest.mark.parametrize("raw,expected", [("Au", "Au"), ("金", "Au"), ("pd", "Pd"), ("銀", "Ag"), ("プラチナ", "Pt")])
+def test_sale_details_use_element_symbols(raw, expected):
+    """2026/11/20 星さん要望: 売却メールの金属名は元素記号。"""
+    from mt_dashboard_backend.api.routes.transaction_routes import _metal_symbol
+    assert _metal_symbol(raw) == expected

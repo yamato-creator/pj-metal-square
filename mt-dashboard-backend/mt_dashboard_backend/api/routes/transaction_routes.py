@@ -310,7 +310,8 @@ async def _create_sale_transaction(transaction_data: TransactionCreate, current_
         # 3. 売却完了メール（お客様＋管理者へ1通ずつ）
         try:
             sales_details = "\n".join([
-                f"{transaction_service._get_metal_name_jp(metal.metal_type)}: {float(metal.amount):.2f}g ({int(float(metal.unit_price))}円/g)"
+                # 2026/11/20 星さん要望: 金属名は日本語ではなく元素記号（Au/Pt/Pd/Ag）。単価はカンマ区切り
+                f"{_metal_symbol(metal.metal_type)}: {float(metal.amount):.2f}g ({int(float(metal.unit_price)):,}円/g)"
                 for metal in transaction_data.metals
             ])
             subtotal = int(transaction_data.total_amount)
@@ -465,6 +466,15 @@ async def _create_deposit_transaction(transaction_data: DepositCreate, current_u
             status_code=500,
             detail="預入処理に失敗しました"
         )
+
+_METAL_SYMBOLS = {"金": "Au", "銀": "Ag", "プラチナ": "Pt", "パラジウム": "Pd",
+                  "au": "Au", "ag": "Ag", "pt": "Pt", "pd": "Pd"}
+
+
+def _metal_symbol(metal_type: str) -> str:
+    """金属種別を元素記号（Au/Ag/Pt/Pd）にそろえる。日本語名・大小文字の違いも吸収する。"""
+    return _METAL_SYMBOLS.get(metal_type, _METAL_SYMBOLS.get(str(metal_type).lower(), metal_type))
+
 
 # 現物返却の下限（g）。金のみ・この量以上で受け付ける（2026/11/20 50g単位→50g以上に変更）。
 WITHDRAW_MIN_G = 50
