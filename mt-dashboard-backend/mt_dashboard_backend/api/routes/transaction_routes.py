@@ -310,7 +310,7 @@ async def _create_sale_transaction(transaction_data: TransactionCreate, current_
         # 3. 売却完了メール（お客様＋管理者へ1通ずつ）
         try:
             sales_details = "\n".join([
-                # 2026/11/20 星さん要望: 金属名は日本語ではなく元素記号（Au/Pt/Pd/Ag）。単価はカンマ区切り
+                # 2026/11/20 星さん要望: 金属名は日本語ではなく元素記号の大文字（AU/PT/PD/AG）。単価はカンマ区切り
                 f"{_metal_symbol(metal.metal_type)}: {float(metal.amount):.2f}g ({int(float(metal.unit_price)):,}円/g)"
                 for metal in transaction_data.metals
             ])
@@ -467,12 +467,13 @@ async def _create_deposit_transaction(transaction_data: DepositCreate, current_u
             detail="預入処理に失敗しました"
         )
 
-_METAL_SYMBOLS = {"金": "Au", "銀": "Ag", "プラチナ": "Pt", "パラジウム": "Pd",
-                  "au": "Au", "ag": "Ag", "pt": "Pt", "pd": "Pd"}
+# 2026/11/20 星さん: 売却メールの金属名は元素記号の大文字2文字（AU/PD/AG/PT）
+_METAL_SYMBOLS = {"金": "AU", "銀": "AG", "プラチナ": "PT", "パラジウム": "PD",
+                  "au": "AU", "ag": "AG", "pt": "PT", "pd": "PD"}
 
 
 def _metal_symbol(metal_type: str) -> str:
-    """金属種別を元素記号（Au/Ag/Pt/Pd）にそろえる。日本語名・大小文字の違いも吸収する。"""
+    """金属種別を元素記号の大文字（AU/AG/PT/PD）にそろえる。日本語名・大小文字の違いも吸収する。"""
     return _METAL_SYMBOLS.get(metal_type, _METAL_SYMBOLS.get(str(metal_type).lower(), metal_type))
 
 

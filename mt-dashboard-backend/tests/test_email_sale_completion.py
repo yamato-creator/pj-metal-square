@@ -59,7 +59,7 @@ def test_customer_mail_includes_payout_notice():
     assert "7営業日以内にご指定の口座にお振込致します。" in body
 
 
-@pytest.mark.parametrize("raw,expected", [("Au", "Au"), ("金", "Au"), ("pd", "Pd"), ("銀", "Ag"), ("プラチナ", "Pt")])
+@pytest.mark.parametrize("raw,expected", [("Au", "AU"), ("金", "AU"), ("pd", "PD"), ("銀", "AG"), ("プラチナ", "PT")])
 def test_sale_details_use_element_symbols(raw, expected):
     """2026/11/20 星さん要望: 売却メールの金属名は元素記号。"""
     from mt_dashboard_backend.api.routes.transaction_routes import _metal_symbol

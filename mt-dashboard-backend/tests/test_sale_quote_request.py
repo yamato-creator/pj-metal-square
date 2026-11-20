@@ -147,8 +147,8 @@ def test_sale_sends_completion_email(app_with_mocks, fake_user):
         assert kwargs["total"] == 159500
         # 2金属分が売却内容に含まれる
         # 2026/11/20 金属名は元素記号・単価はカンマ区切り
-        assert "Au: 10.00g (12,000円/g)" in kwargs["sales_details"]
-        assert "Pt: 5.00g (5,000円/g)" in kwargs["sales_details"]
+        assert "AU: 10.00g (12,000円/g)" in kwargs["sales_details"]
+        assert "PT: 5.00g (5,000円/g)" in kwargs["sales_details"]
 
 
 def test_sale_rejects_amount_over_holdings(app_with_mocks):

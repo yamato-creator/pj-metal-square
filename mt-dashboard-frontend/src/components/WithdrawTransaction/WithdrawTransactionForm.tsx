@@ -70,8 +70,9 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
 
   // 入力値の変更を処理する関数
   const handleAmountChange = (metalName: string, value: string) => {
-    // 小数点を含む場合は整数部分のみ使用
-    const intValue = value.includes('.') ? value.split('.')[0] : value;
+    // 2026/11/20 星さん: 小数も可（50.01g など）。小数点以下は2桁までに切り詰める
+    const m = value.match(/^(\d*)(\.\d{0,2})?/);
+    const intValue = m ? (m[1] || '') + (m[2] || '') : '';
     
     // 入力値をそのまま保存（バリデーションなし）
     setInputValues(prev => ({
@@ -89,7 +90,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     }
 
     // 数値変換
-    const numAmount = Number(intValue);
+    const numAmount = Number(intValue === '.' ? 0 : intValue);
     
     // 不正な値の検出（負数やNaN）
     if (numAmount < 0 || isNaN(numAmount)) {
@@ -101,9 +102,9 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     if (metal) {
       let validAmount = numAmount;
       
-      // 2026/11/20 50g単位→50g以上（1g単位）に変更。保有量を超える場合は保有量（整数）に合わせる
+      // 2026/11/20 50g単位→50g以上（小数2桁まで）に変更。保有量を超える場合は保有量に合わせる
       if (validAmount > metal.amount) {
-        validAmount = Math.floor(metal.amount);
+        validAmount = Math.floor(metal.amount * 100) / 100;
         setInputValues(prev => ({
           ...prev,
           [metalName]: validAmount.toString()
@@ -142,9 +143,9 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
     // 保有量の確認
     const metal = filteredMetals.find(m => m.name === metalName);
     if (metal) {
-      // 保有量を超える場合は保有量（整数）に合わせる
+      // 保有量を超える場合は保有量に合わせる（小数2桁まで）
       if (numAmount > metal.amount) {
-        numAmount = Math.floor(metal.amount);
+        numAmount = Math.floor(metal.amount * 100) / 100;
       }
       
       setInputValues(prev => ({ ...prev, [metalName]: numAmount.toString() }));
@@ -289,7 +290,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
         
         <div className="mb-4">
           <p className="responsive-text text-gray-600 mb-2">※ 金のみ返却可能です</p>
-          <p className="responsive-text text-gray-600 mb-2">※ 返却は50g以上から可能です（指定返却は1g単位）</p>
+          <p className="responsive-text text-gray-600 mb-2">※ 返却は50g以上から可能です（50.01gなど小数点以下2桁まで指定できます）</p>
           <label className="responsive-text">返却方式：</label>
           <div className="mt-2 space-x-4">
             <label className="inline-flex items-center">
@@ -348,7 +349,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
                       <input
                         type="number"
                         min="0"
-                        step="1"
+                        step="0.01"
                         max={metal.amount}
                         className="w-36 text-right border rounded p-1 responsive-text tabular-nums"
                         value={inputValues[metal.name]}
@@ -356,7 +357,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
                         onBlur={() => handleBlur(metal.name)}
                         onClick={(e) => e.currentTarget.select()}
                         onKeyDown={(e) => {
-                          if (e.key === '-' || e.key === '.' || e.key === ',') {
+                          if (e.key === '-' || e.key === ',') {
                             e.preventDefault();
                           }
                         }}
