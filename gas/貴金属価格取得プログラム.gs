@@ -678,41 +678,72 @@ const PRICE_NOTICE_RECIPIENTS = [
 function buildPriceUpdateNotice_(isCorrection) {
   SpreadsheetApp.flush(); // 直前の書き込み（税込の計算式を含む）を反映させてから読む
   const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
-  const rows = sheet.getRange('B2:E5').getValues(); // 貴金属 / 税抜 / 税込 / 更新日時
+  const rows = sheet.getRange('B2:E5').getValues(); // 貴金属 / 税抜 / 税込 / 更新日時（2=金,3=Pt,4=Pd,5=銀）
+  // 履歴: 行10=今回, 行11=前回（B=金, C=Pt, D=Pd, E=銀）。訂正時も行10が上書きされるので前回は行11。
+  const prevRow = sheet.getRange(11, 2, 1, 4).getValues()[0];
 
-  const yen = (v) => (v === '' || v === null || isNaN(Number(v)))
-    ? '-'
-    : Number(v).toLocaleString('ja-JP', { maximumFractionDigits: 1 }) + '円';
   const fmtTime = (v) => (v instanceof Date)
     ? Utilities.formatDate(v, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm')
     : String(v || '').replace(/-/g, '/').slice(0, 16);
 
+  // 2026/11/20 星さん要望: 「ＰＤ：4,750円(‐32円)/約5,225円」の形。数値は小数切り捨て、円とスラッシュを縦にそろえる。
+  const LABELS = ['ＡＵ', 'ＰＴ', 'ＰＤ', 'ＡＧ'];
+  const num = (v) => (v === '' || v === null || isNaN(Number(v))) ? null : Math.floor(Number(v));
+  const yen = (n) => n === null ? '-' : n.toLocaleString('ja-JP') + '円';
+  const diffStr = (now, before) => {
+    if (now === null || before === null) return '';
+    const d = now - before;
+    if (d > 0) return '(+' + d.toLocaleString('ja-JP') + '円)';
+    if (d < 0) return '(‐' + Math.abs(d).toLocaleString('ja-JP') + '円)';
+    return '(±0円)';
+  };
+  const items = rows.map(([, exTax, inTax], i) => {
+    const now = num(exTax);
+    return {
+      label: LABELS[i] + '：',
+      exTax: yen(now),
+      diff: diffStr(now, num(prevRow[i])),
+      inTax: '/約' + yen(num(inTax)),
+    };
+  });
+
+  // テキスト版（等幅で見たとき用に右寄せで空白を詰める）
+  const w = (k) => Math.max(...items.map((it) => it[k].length));
+  const pad = (str, n) => ' '.repeat(Math.max(0, n - str.length)) + str;
+  const lines = items.map((it) =>
+    it.label + pad(it.exTax, w('exTax') + 1) + pad(it.diff, w('diff')) + it.inTax);
+
   const updatedAt = fmtTime(rows[0][3]);
-  const lines = rows.map(([metal, exTax, inTax]) =>
-    `${metal}：税抜 ${yen(exTax)} ／ 税込 ${yen(inTax)}（1gあたり）`);
-
   const subject = (isCorrection ? '【訂正】' : '') + `【単価更新】${updatedAt} の貴金属単価`;
-  const body = [
-    isCorrection
-      ? '田中貴金属から訂正メールが届いたため、単価を訂正しました。'
-      : '田中貴金属の相場メールを受信し、アプリの単価を更新しました。',
-    '',
-    `更新日時：${updatedAt}`,
-    '',
-    ...lines,
-    '',
-    '※このメールは単価の更新時に自動で送信しています。',
-  ].join('\n');
+  const intro = isCorrection
+    ? '田中貴金属から訂正メールが届いたため、単価を訂正しました。'
+    : '田中貴金属の相場メールを受信し、アプリの単価を更新しました。';
+  const legend = '税抜単価(前回比)/税込単価（1gあたり・円未満切り捨て）';
+  const footer = '※このメールは単価の更新時に自動で送信しています。';
 
-  return { subject, body };
+  const body = [intro, '', `更新日時：${updatedAt}`, '', legend, ...lines, '', footer].join('\n');
+
+  // HTML版: 表で各列を右寄せにして「円」と「/」の位置をそろえる（メールソフトの文字幅に左右されない）
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const td = (t, align) => `<td style="padding:2px 4px;text-align:${align};white-space:nowrap;">${esc(t)}</td>`;
+  const tableRows = items.map((it) =>
+    '<tr>' + td(it.label, 'left') + td(it.exTax, 'right') + td(it.diff, 'right') + td(it.inTax, 'left') + '</tr>').join('');
+  const htmlBody =
+    `<div style="font-family:sans-serif;font-size:14px;line-height:1.6;">` +
+    `<p>${esc(intro)}</p><p>更新日時：${esc(updatedAt)}</p>` +
+    `<p style="margin-bottom:4px;">${esc(legend)}</p>` +
+    `<table style="border-collapse:collapse;font-variant-numeric:tabular-nums;">${tableRows}</table>` +
+    `<p>${esc(footer)}</p></div>`;
+
+  return { subject, body, htmlBody };
 }
 
 /**
  * 星さん・平田さんへ単価更新の通知メールを送る
  */
 function sendPriceUpdateNoticeToAdmins(isCorrection) {
-  const { subject, body } = buildPriceUpdateNotice_(isCorrection);
-  GmailApp.sendEmail(PRICE_NOTICE_RECIPIENTS.join(','), subject, body);
+  const { subject, body, htmlBody } = buildPriceUpdateNotice_(isCorrection);
+  GmailApp.sendEmail(PRICE_NOTICE_RECIPIENTS.join(','), subject, body, { htmlBody: htmlBody });
   Logger.log('[価格通知] 送信しました: ' + PRICE_NOTICE_RECIPIENTS.join(', '));
 }
 
