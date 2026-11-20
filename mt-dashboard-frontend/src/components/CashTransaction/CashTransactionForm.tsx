@@ -394,6 +394,8 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
           <div className="text-right responsive-text mb-2 sm:mb-0">
             <span className="font-bold">売却金額: </span>
             <span>{totalAmount === 0 ? '0' : Math.floor(totalAmount).toLocaleString()}円</span>
+            {/* 2026/11/20 計算後は税抜であることを明記 */}
+            {totalAmount > 0 && <span className="ml-1">（税抜）</span>}
           </div>
           <div className="space-x-2">
             <button
