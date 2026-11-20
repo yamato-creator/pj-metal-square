@@ -192,6 +192,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
                   <span>{item.label}</span>
                 </Link>
               ))}
+              <Link
+                to="/privacy-policy"
+                className="flex items-center px-4 py-3 text-sm text-white hover:bg-emerald-700 transition-colors"
+                onClick={closeMobileMenu}
+              >
+                プライバシーポリシー
+              </Link>
               <div className="mt-4 border-t border-emerald-500 pt-4 px-4">
                 <span className="text-white font-bold">{user?.user_name || ''}</span>
               </div>
@@ -203,6 +210,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       <main className="flex-1 bg-gray-100">
         {children}
       </main>
+      {/* 2026/11/20 ログイン後もプライバシーポリシーを見られるように */}
+      <footer className="bg-gray-100 border-t border-gray-200 py-4 text-center text-sm">
+        <Link to="/privacy-policy" className="text-emerald-700 underline hover:text-emerald-900">
+          プライバシーポリシー
+        </Link>
+      </footer>
     </div>
   );
 };

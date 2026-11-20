@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const PrivacyPolicy: React.FC = () => {
   const [content, setContent] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     fetch('/privacy-policy.md')
@@ -27,18 +29,29 @@ const PrivacyPolicy: React.FC = () => {
             </pre>
           )}
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              to="/"
-              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 no-underline"
-            >
-              トップへ戻る
-            </Link>
-            <Link
-              to="/login"
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 no-underline"
-            >
-              ログイン画面へ
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                to="/dashboard"
+                className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 no-underline"
+              >
+                トップへ戻る
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 no-underline"
+                >
+                  トップへ戻る
+                </Link>
+                <Link
+                  to="/login"
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 no-underline"
+                >
+                  ログイン画面へ
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
