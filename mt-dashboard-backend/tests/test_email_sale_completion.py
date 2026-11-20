@@ -44,3 +44,16 @@ def test_ogura_in_admin_emails():
     from mt_dashboard_backend.api.utils.email import EmailSender
     sender = EmailSender()
     assert "ogura.yamato123@gmail.com" in sender.admin_emails
+
+
+def test_customer_mail_includes_payout_notice():
+    """2026/11/20 星さん要望: 売却完了メール（お客様宛）に振込予定の案内を入れる。"""
+    import asyncio
+    from unittest.mock import AsyncMock
+    from mt_dashboard_backend.api.utils.email import EmailSender
+    sender = EmailSender.__new__(EmailSender)
+    sender.send_email = AsyncMock(return_value=True)
+    sender.send_email_to_all_admins = AsyncMock(return_value=True)
+    asyncio.run(sender.send_sale_completion_email("a@example.com", "金 1g", 100, 10, 110))
+    body = sender.send_email.call_args.args[2]
+    assert "7営業日以内にご指定の口座にお振込致します。" in body

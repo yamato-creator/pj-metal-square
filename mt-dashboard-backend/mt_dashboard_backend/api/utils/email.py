@@ -274,6 +274,8 @@ https://www.preciousmetalmine.com/
 消費税: {tax:,}円
 総合計: {total:,}円
 
+7営業日以内にご指定の口座にお振込致します。
+
 ご利用ありがとうございました。
 
 取引日時: {sale_datetime}"""
