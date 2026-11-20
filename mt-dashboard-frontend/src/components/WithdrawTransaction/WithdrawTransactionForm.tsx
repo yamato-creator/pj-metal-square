@@ -350,7 +350,7 @@ const WithdrawTransactionForm: React.FC<WithdrawTransactionFormProps> = ({ metal
                         min="0"
                         step="1"
                         max={metal.amount}
-                        className="w-20 text-right border rounded p-1 responsive-text"
+                        className="w-36 text-right border rounded p-1 responsive-text tabular-nums"
                         value={inputValues[metal.name]}
                         onChange={(e) => handleAmountChange(metal.name, e.target.value)}
                         onBlur={() => handleBlur(metal.name)}

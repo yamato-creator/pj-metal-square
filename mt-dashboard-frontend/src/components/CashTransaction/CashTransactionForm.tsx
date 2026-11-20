@@ -373,7 +373,7 @@ const CashTransactionForm: React.FC<CashTransactionFormProps> = ({ metals, onSal
                       min="0"
                       max={metal.amount}
                       step="0.01"
-                      className="w-20 text-right border rounded p-1 responsive-text tabular-nums"
+                      className="w-36 text-right border rounded p-1 responsive-text tabular-nums"
                       value={inputValues[metal.name]}
                       onChange={(e) => handleAmountChange(metal.name, e.target.value)}
                       onBlur={() => handleBlur(metal.name)}
