@@ -697,7 +697,7 @@ function buildPriceUpdateNotice_(isCorrection) {
     if (d < 0) return '(‐' + Math.abs(d).toLocaleString('ja-JP') + '円)';
     return '(±0円)';
   };
-  const items = rows.map(([, exTax, inTax], i) => {
+  const itemsBySheet = rows.map(([, exTax, inTax], i) => {
     const now = num(exTax);
     return {
       label: LABELS[i] + '：',
@@ -706,6 +706,8 @@ function buildPriceUpdateNotice_(isCorrection) {
       inTax: '/約' + yen(num(inTax)),
     };
   });
+  // 2026/11/24 星さん: 表示順は AU → PD → AG → PT（シートは 金,Pt,Pd,銀 の順）
+  const items = [0, 2, 3, 1].map((i) => itemsBySheet[i]);
 
   // テキスト版（等幅で見たとき用に右寄せで空白を詰める）
   const w = (k) => Math.max(...items.map((it) => it[k].length));
