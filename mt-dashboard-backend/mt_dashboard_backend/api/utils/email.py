@@ -155,7 +155,7 @@ https://www.preciousmetalmine.com/
         
         return success
 
-    async def send_password_change_email(self, user_email: str, change_datetime: str) -> bool:
+    async def send_password_change_email(self, user_email: str, change_datetime: str, username: str = "") -> bool:
         """パスワード変更完了メールを送信"""
         subject = "パスワード変更完了のお知らせ"
         body = f"""
@@ -174,8 +174,8 @@ https://www.preciousmetalmine.com/
             admin_body = f"""
 以下のユーザーがパスワードを変更しました。
 
-メールアドレス: {user_email}
-変更日時: {change_datetime}"""
+ユーザー名: {username or user_email}
+変更日時: {change_datetime}"""  # 2026/11/24 星さん要望: メールアドレスではなくユーザー名を表示
             
             await self.send_email_to_all_admins(admin_subject, admin_body)
         

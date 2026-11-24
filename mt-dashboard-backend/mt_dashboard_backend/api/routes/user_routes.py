@@ -98,7 +98,8 @@ async def change_password(
         try:
             await email_sender.send_password_change_email(
                 user_email=current_user["email"],
-                change_datetime=jst_str()
+                change_datetime=jst_str(),
+                username=current_user.get("user_name", ""),
             )
         except Exception as e:
             logger.error(f"メール送信エラー: {e}")
